@@ -1,0 +1,17 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    { "identifier": "core:default" },
+    { "identifier": "opener:default" },
+    { "identifier": "dialog:default" },
+    { "identifier": "fs:allow-read-text-file", "allow": [{ "path": "**"}] },
+    { "identifier": "fs:allow-write-text-file", "allow": [{ "path": "**"}] },
+    { "identifier": "fs:allow-exists", "allow": [{ "path": "**"}] }
+  ],
+  "platforms": ["linux", "macOS", "windows"]
+}

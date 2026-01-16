@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@plugin '@tailwindcss/forms';
+
+@theme {
+  --font-display: 'Cinzel', serif;
+	--font-serif: 'Crimson Pro', serif;
+	--font-main: 'Main Font', serif;
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+  }
+}
+
+@layer base {
+	@font-face {
+		font-family: 'Cinzel';
+		font-style: normal;
+		font-weight: 400;
+		font-display: swap;
+		src: url('/fonts/cinzel-v26-latin-regular.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Cinzel';
+		font-style: normal;
+		font-weight: 700;
+		src: url('/fonts/cinzel-v26-latin-700.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Cinzel';
+		font-style: normal;
+		font-weight: 900;
+		src: url('/fonts/cinzel-v26-latin-900.woff2') format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Crimson Pro';
+		font-style: normal;
+		font-weight: 400;
+		font-display: swap;
+		src: url('/fonts/crimson-pro-v28-latin-regular.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Crimson Pro';
+		font-style: italic;
+		font-weight: 400;
+		font-display: swap;
+		src: url('/fonts/crimson-pro-v28-latin-italic.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Crimson Pro';
+		font-style: normal;
+		font-weight: 700;
+		font-display: swap;
+		src: url('/fonts/crimson-pro-v28-latin-700.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Crimson Pro';
+		font-style: italic;
+		font-weight: 700;
+		font-display: swap;
+		src: url('/fonts/crimson-pro-v28-latin-700italic.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Crimson Pro';
+		font-style: normal;
+		font-weight: 900;
+		font-display: swap;
+		src: url('/fonts/crimson-pro-v28-latin-900.woff2') format('woff2');
+	}
+	@font-face {
+		font-family: 'Crimson Pro';
+		font-style: italic;
+		font-weight: 900;
+		font-display: swap;
+		src: url('/fonts/crimson-pro-v28-latin-900italic.woff2') format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Main Font';
+		font-display: swap;
+		src: url('/fonts/mainFont.woff2') format('woff2');
+	}
+
+	:root {
+		--background: #F4ECD8;  
+		--surface: #E6DBB9;    
+		
+		--primary: #A63A29;     
+		--secondary: #2E5EAA;  
+		
+		--text-main: #2C241B;  
+		--text-muted: #8C7B65;  
+	}
+
+	body {
+		background-color: var(--background);
+		color: var(--text-main);
+		transition-property: color, background-color, border-color;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+		transition-duration: 300ms;
+		font-family: var(--font-main);
+	}
+
+	input:-webkit-autofill,
+	input:-webkit-autofill:hover,
+	input:-webkit-autofill:focus,
+	input:-webkit-autofill:active {
+		-webkit-box-shadow: 0 0 0 30px var(--surface) inset !important;
+		-webkit-text-fill-color: var(--text-main) !important;
+	}
+
+	input[type='number']::-webkit-inner-spin-button,
+	input[type='number']::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+	}
+}
