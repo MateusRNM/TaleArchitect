@@ -1,4 +1,4 @@
-import type { ProjectData, Character, Event, Time } from '$lib/models/project';
+import { type ProjectData, type Character, type Event, type Time, GREGORIAN_MONTHS } from '$lib/models/project';
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
 
 export class ActiveProject {
@@ -109,7 +109,9 @@ export const projectStore = $state({
             createdAt: new Date().toISOString(),
             lastOpenedAt: new Date().toISOString(),
             autosave: false,
-            calendar: { monthDuration: 30, yearDuration: 12 },
+            calendar:{
+                months: JSON.parse(JSON.stringify(GREGORIAN_MONTHS))
+            },
             characters: [],
             locations: [],
             connections: [],

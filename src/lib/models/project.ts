@@ -1,9 +1,29 @@
 export type UUID = string;
 
+export const GREGORIAN_MONTHS: Month[] = [
+    { name: 'Janeiro', days: 31 },
+    { name: 'Fevereiro', days: 28 },
+    { name: 'Março', days: 31 },
+    { name: 'Abril', days: 30 },
+    { name: 'Maio', days: 31 },
+    { name: 'Junho', days: 30 },
+    { name: 'Julho', days: 31 },
+    { name: 'Agosto', days: 31 },
+    { name: 'Setembro', days: 30 },
+    { name: 'Outubro', days: 31 },
+    { name: 'Novembro', days: 30 },
+    { name: 'Dezembro', days: 31 }
+];
+
 export interface Time {
     day: number;
     month: number;
     year: number;
+}
+
+export interface Month {
+    name: string;
+    days: number;
 }
 
 export interface Character {
@@ -45,7 +65,9 @@ export interface ProjectData {
     createdAt: string;
     lastOpenedAt: string;
     autosave: boolean;
-    calendar: { monthDuration: number, yearDuration: number };
+    calendar: {
+        months: Month[]
+    };
     characters: Character[];
     locations: Location[];
     connections: Connection[];

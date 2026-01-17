@@ -96,7 +96,7 @@
         </div>
     </header>
 
-    <main class="flex-1 relative bg-background overflow-hidden">
+    <main class="flex-1 relative bg-background overflow-x-hidden overflow-y-auto scrollbar-hide">
         
         {#if activeTabDefinition}
             <activeTabDefinition.component/>
