@@ -1,6 +1,8 @@
-import { projectStore } from '$lib/stores/project.svelte';
+import { ActiveProject, projectStore } from '$lib/stores/project.svelte';
 import { commandRegistry } from '$lib/services/commands';
 import { open, ask } from '@tauri-apps/plugin-dialog';
+import type { Event } from '$lib/models/project';
+import { timelineController } from './timelineController.svelte';
 
 export const charState = $state({
     view: 'list' as 'list' | 'form',
@@ -91,6 +93,11 @@ function resetForm() {
     charState.formData = { name: '', description: '', image: null };
 }
 
+function getAllEvents(args: { charId: string }): Event[] {
+    if(!projectStore.current || !args || !args.charId) return [];
+    return timelineController.sortedEvents.filter((event) => event.characters.includes(args.charId));
+}
+
 export function registerCharacterCommands() {
     commandRegistry.register('char:create', openCreateCommand, 'Abrir formulário de novo personagem');
     commandRegistry.register('char:edit', openEditCommand, 'Editar personagem existente');
@@ -99,4 +106,5 @@ export function registerCharacterCommands() {
     commandRegistry.register('char:cancel', closeFormCommand, 'Cancelar edição/criação');
     commandRegistry.register('char:image:pick', pickImageCommand, 'Selecionar imagem do disco');
     commandRegistry.register('char:image:remove', removeImageCommand, 'Remover imagem do formulário');
+    commandRegistry.register('char:events', getAllEvents, 'Retorna todos os eventos que um personagem participou em ordem cronológica crescente.');
 }

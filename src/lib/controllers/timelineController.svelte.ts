@@ -16,7 +16,7 @@ class TimelineController {
         characters: [] as string[]
     });
 
-    sortedEvents = $derived.by(() => {
+    public sortedEvents = $derived.by(() => {
         if (!projectStore.current) return [];
         return [...projectStore.current.data.events].sort((a, b) => {
             return this.getDateValue(a.date) - this.getDateValue(b.date);
