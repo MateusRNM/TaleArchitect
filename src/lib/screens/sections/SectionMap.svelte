@@ -190,7 +190,7 @@
     }
 </script>
 
-<div class="relative w-full h-full bg-[#E8E0CD] overflow-hidden select-none">
+<div class="relative w-full h-full bg-[#f1e0b9] overflow-hidden select-none">
     
     <div class="absolute top-4 right-4 flex flex-col gap-2 bg-surface/90 p-2 rounded-lg shadow-md border border-text-muted/20 z-10 backdrop-blur-sm">
         <button onclick={() => view.k = Math.min(view.k + 0.2, 5)} class="p-2 hover:bg-background rounded transition-colors"><Plus size={20}/></button>
@@ -198,11 +198,11 @@
         <button onclick={resetView} class="p-2 hover:bg-background rounded transition-colors"><MapIcon size={20}/></button>
     </div>
 
-    <div class="absolute bottom-4 left-4 p-3 bg-surface/80 backdrop-blur-sm rounded-lg border border-text-muted/10 text-[10px] text-text-muted font-mono space-y-1 pointer-events-none shadow-sm z-10">
-        <p>• Arrastar Fundo: Pan</p>
+    <div class="absolute bottom-4 left-4 p-3 bg-surface/80 backdrop-blur-sm rounded-lg border border-text-muted/10 text-[13px] text-text-muted font-mono space-y-1 pointer-events-none shadow-sm z-10">
+        <p>• Arrastar Fundo: Mover câmera/pan</p>
         <p>• Scroll: Zoom</p>
         <p>• Duplo Clique: Criar Local</p>
-        <p>• Botão Direito (Arrastar): Conectar</p>
+        <p>• Botão Direito: Conectar locais</p>
     </div>
 
     {#if selectedLocationId && projectStore.current}
@@ -257,7 +257,7 @@
     >
         <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--text-muted)" stroke-width="0.5" opacity="0.1"/>
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="var(--text-muted)" stroke-width="0.5" opacity="0.4"/>
             </pattern>
         </defs>
 
@@ -289,6 +289,10 @@
                                 pointer-events="stroke"
                                 onpointerdown={(e) => handleConnectionPointerDown(e, conn.id)}
                             />
+
+                            <text y={(from.coordinates.y + to.coordinates.y)/2 + 15} x={(from.coordinates.x + to.coordinates.x)/2} text-anchor="middle" class="text-[10px] uppercase font-bold tracking-wider fill-text-muted group-hover:opacity-100 transition-opacity bg-background px-1 pointer-events-none">
+                                {conn.name}
+                            </text>
                         </g>
                     {/if}
                 {/each}
