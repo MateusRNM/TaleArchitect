@@ -93,10 +93,10 @@
                     </div>
                     
                     <button 
-                        onclick={() => { 
+                        onclick={async () => { 
                             if(projectStore.current) {
                                 projectStore.current.data.autosave = !projectStore.current.data.autosave;
-                                handleChange();
+                                await projectStore.save();
                             }
                         }}
                         class="relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer"

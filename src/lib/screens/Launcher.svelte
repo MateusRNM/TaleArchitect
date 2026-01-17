@@ -125,7 +125,7 @@
                     <h2 class="text-xl font-serif font-bold text-text-main">Projetos Recentes</h2>
                     
                     <span class="text-xs text-text-muted uppercase tracking-wider font-bold bg-background px-2 py-1 rounded-full shadow-sm">
-                        {recentProjects.length} Encontrados
+                        {recentProjects.length} {recentProjects.length === 0 ? 'NENHUM ENCONTRADO' : recentProjects.length === 1 ? 'ENCONTRADO' : 'ENCONTRADOS'}
                     </span>
                 </div>
 

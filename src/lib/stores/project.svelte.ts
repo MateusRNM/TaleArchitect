@@ -11,14 +11,24 @@ export class ActiveProject {
         this.data = initialData;
     }
 
-    addCharacter(name: string) {
+    addCharacter(name: string, description: string, image: string) {
         const newChar: Character = {
             id: crypto.randomUUID(),
             name,
-            description: ''
+            image,
+            description: description,
+            createdAt: new Date().toISOString()
         };
         this.data.characters.push(newChar);
         this.changesUnsaved = true;
+    }
+
+    updateCharacter(id: string, updates: Partial<Character>) {
+        const index = this.data.characters.findIndex((v) => v.id === id);
+        if(index !== -1) {
+            this.data.characters[index] = { ...this.data.characters[index], ...updates };
+            this.changesUnsaved = true;
+        }
     }
 
     removeCharacter(id: string) {
@@ -36,14 +46,18 @@ export class ActiveProject {
         this.changesUnsaved = true;
     }
 
-    connectLocations(description: string, fromId: string, toId: string) {
-        this.data.connections.push({
-            id: crypto.randomUUID(),
-            description,
-            fromLocationId: fromId,
-            toLocationId: toId
-        });
-        this.changesUnsaved = true;
+    connectLocations(name: string, description: string, fromId: string, toId: string) {
+        const idx = this.data.connections.findIndex((v) => (v.fromLocationId === fromId && v.toLocationId === toId) || (v.fromLocationId === toId && v.toLocationId === fromId));
+        if(idx === -1) {
+            this.data.connections.push({
+                id: crypto.randomUUID(),
+                name,
+                description,
+                fromLocationId: fromId,
+                toLocationId: toId
+            });
+            this.changesUnsaved = true;
+        }
     }
 
     addEvent(name: string, description: string, locationId: string, date: Time, characterIds: string[] = []) {

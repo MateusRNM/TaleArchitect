@@ -9,7 +9,9 @@ export interface Time {
 export interface Character {
     id: UUID;
     name: string;
-    description: string;
+    image: string;
+    description: string | null;
+    createdAt: string;
 }
 
 export interface Location {
@@ -21,6 +23,7 @@ export interface Location {
 
 export interface Connection {
     id: UUID;
+    name: string;
     description: string;
     fromLocationId: UUID;
     toLocationId: UUID;
