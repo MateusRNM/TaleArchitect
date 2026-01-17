@@ -91,6 +91,7 @@ class TimelineController {
             characters: event.characters ? [...event.characters] : [] 
         };
         this.view = 'form';
+        commandRegistry.execute('ui:navigate', { tabId: 'timeline' });
     }
 
     async saveEvent() {

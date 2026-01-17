@@ -4,6 +4,8 @@
     import { Plus, Minus, Map as MapIcon, X, Trash2, AlignLeft, Info, Route, MoveHorizontalIcon } from 'lucide-svelte';
     import { mapState, toWorld, setMapContainer } from '$lib/controllers/mapController.svelte';
     import { commandRegistry } from '$lib/services/commands';
+    import type { Event } from '$lib/models/project';
+    import { timelineController } from '$lib/controllers/timelineController.svelte';
     const NODE_RADIUS = 30;
     let startPan = { x: 0, y: 0 };
     let startView = { x: 0, y: 0 };
@@ -12,6 +14,11 @@
 
     const cmd = commandRegistry.execute.bind(commandRegistry);
 
+    let eventsOfSelectedLocation: Event[] = $derived.by(() => {
+        if(!mapState.selectedLocationId) return [];
+        return timelineController.sortedEvents.filter((event) => event.locationId === mapState.selectedLocationId);
+    });
+ 
     onMount(() => {
         setMapContainer(svgElement);
     });
@@ -168,6 +175,37 @@
                         <button onclick={() => cmd('map:selection:delete')} class="flex items-center gap-1 text-xs font-bold text-red-600 hover:bg-red-100 px-3 py-1.5 rounded cursor-pointer"><Trash2 size={14} /> Deletar</button>
                     </div>
                 </div>
+                
+                <hr class="my-2 border-spacing-y-0.5 border-primary">
+
+                {#if eventsOfSelectedLocation.length > 0}
+
+                    <label class="text-sm font-bold text-text-muted uppercase text-center">Eventos que ocorreram nesse local:</label>
+
+                    <div class="flex flex-col gap-4 overflow-y-auto scrollbar-hide p-4 border border-primary rounded-xl max-h-60 mt-4">
+
+                         {#each eventsOfSelectedLocation as event}
+                            <div class="flex flex-col p-3 rounded-lg border border-text-muted/10 shadow-sm bg-surface/80 backdrop-blur-sm
+                            group-hover:shadow-lg group-hover:border-primary/30 group-hover:-translate-y-1 transition-all
+                            text-left items-start cursor-pointer"
+                            onclick={() => cmd('timeline:edit', { id: event.id })}
+                            >
+                                <span class="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
+                                    {event.date.day} / {event.date.month} / {event.date.year} - {event.date.hour}:{event.date.minute}
+                                </span>
+                                <h3 class="font-bold text-text-main font-serif leading-tight">{event.name}</h3>
+                                {#if event.description}
+                                    <p class="text-xs text-text-muted line-clamp-2 mt-1 opacity-80">{event.description}</p>
+                                {/if}
+                            </div>
+                         {/each}
+
+                    </div>
+
+                {:else}
+                    <label class="text-sm font-bold text-text-muted uppercase text-center">Não ocorreu nenhum evento nesse local</label>
+                {/if}
+
             </div>
         {/if}
     {/if}

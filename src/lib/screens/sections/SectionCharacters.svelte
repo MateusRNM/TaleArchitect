@@ -165,7 +165,8 @@
                                 <div class="
                                     flex flex-col p-3 rounded-lg border border-text-muted/10 shadow-sm bg-surface/80 backdrop-blur-sm
                                     group-hover:shadow-lg group-hover:border-primary/30 group-hover:-translate-y-1 transition-all
-                                    text-left items-start"
+                                    text-left items-start cursor-pointer"
+                                    onclick={() => cmd('timeline:edit', { id: event.id })}
                                 >
                                     <span class="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
                                         {event.date.day} / {event.date.month} / {event.date.year} - {event.date.hour}:{event.date.minute}
