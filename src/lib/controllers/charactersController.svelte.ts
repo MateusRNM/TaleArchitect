@@ -59,7 +59,7 @@ async function saveCharacterCommand() {
 }
 
 async function deleteCharacterCommand(args: { id: string }) {
-    const confirmed = await ask('Tem certeza que deseja deletar esse personagem?', {
+    const confirmed = await ask('Tem certeza que deseja deletar esse personagem? Ele também será removido de todos os eventos que ele participa.', {
         title: 'Confirmação', kind: 'warning'
     });
 

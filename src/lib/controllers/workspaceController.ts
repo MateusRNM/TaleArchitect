@@ -6,6 +6,7 @@ import { uiManager } from '$lib/stores/ui.svelte';
 import { registerProjectSettingsCommands } from './projectSettingsController';
 import { registerCharacterCommands } from './charactersController.svelte';
 import { registerMapCommands } from './mapController.svelte';
+import { registerTimelineCommands } from './timelineController.svelte';
 
 async function saveProjectCommand() {
     if (projectStore.current) {
@@ -44,4 +45,5 @@ export function registerWorkspaceCommands() {
     registerProjectSettingsCommands();
     registerCharacterCommands();
     registerMapCommands();
+    registerTimelineCommands();
 }

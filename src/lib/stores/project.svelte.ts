@@ -33,6 +33,12 @@ export class ActiveProject {
 
     removeCharacter(id: string) {
         this.data.characters = this.data.characters.filter(c => c.id !== id);
+        this.data.events.forEach((event) => {
+            const index = event.characters.findIndex((charId) => charId === id);
+            if(index !== -1) {
+                event.characters.splice(index, 1);
+            }
+        });
         this.changesUnsaved = true;
     }
 
@@ -73,7 +79,7 @@ export class ActiveProject {
         this.changesUnsaved = true;
     }
 
-    addEvent(name: string, description: string, locationId: string, date: Time, characterIds: string[] = []) {
+    addEvent(name: string, description: string, locationId: string, date: Time, characterIds: string[]) {
         const newEvent: Event = {
             id: crypto.randomUUID(),
             name,
@@ -84,17 +90,21 @@ export class ActiveProject {
         };
         
         this.data.events.push(newEvent);
-        this.sortEvents();
         
         this.changesUnsaved = true;
     }
 
-    private sortEvents() {
-        this.data.events.sort((a, b) => {
-            if (a.date.year !== b.date.year) return a.date.year - b.date.year;
-            if (a.date.month !== b.date.month) return a.date.month - b.date.month;
-            return a.date.day - b.date.day;
-        });
+    updateEvent(id: string, updates: Partial<Event>) {
+        const index = this.data.events.findIndex((v) => v.id === id);
+        if(index !== -1) {
+            this.data.events[index] = { ...this.data.events[index], ...updates };
+            this.changesUnsaved = true;
+        }
+    }
+ 
+    removeEvent(id: string) {
+        this.data.events = this.data.events.filter((v) => v.id !== id);
+        this.changesUnsaved = true;
     }
 }
 

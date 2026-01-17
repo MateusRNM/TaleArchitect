@@ -21,7 +21,7 @@
     const cmd = commandRegistry.execute.bind(commandRegistry);
 </script>
 
-<div class="flex flex-col h-full overflow-hidden animate-in fade-in duration-300">
+<div class="flex flex-col h-full overflow-hidden duration-300">
     
     {#if charState.view === 'list'}
         <div class="flex flex-col md:flex-row gap-4 justify-between items-center p-6 border-b border-text-muted/20 bg-surface/30">
@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-text-muted/50">
+        <div class="flex-1 overflow-y-auto p-6 scrollbar-hide">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {#each filteredCharacters as char (char.id)}
                     <button 
