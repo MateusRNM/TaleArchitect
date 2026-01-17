@@ -4,6 +4,8 @@
     import { Search, Plus, Filter, User, Trash2, Save, ArrowLeft, Image as ImageIcon } from 'lucide-svelte';
     import { commandRegistry } from '$lib/services/commands';
     import { charState } from '$lib/controllers/charactersController.svelte';
+    import type { Event } from '$lib/models/project';
+    import { timelineController } from '$lib/controllers/timelineController.svelte';
 
     let filteredCharacters = $derived.by(() => {
         if (!projectStore.current) return [];
@@ -16,6 +18,11 @@
             if (charState.sortBy === 'name') return a.name.localeCompare(b.name);
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
+    });
+
+    let eventsOfSelectedCharacter: Event[] = $derived.by(() => {
+        if(!charState.selectedId) return [];
+        return timelineController.sortedEvents.filter((event) => event.characters.includes(charState.selectedId as string));
     });
 
     const cmd = commandRegistry.execute.bind(commandRegistry);
@@ -147,6 +154,35 @@
                     >
                         Remover imagem
                     </button>
+
+                    {#if eventsOfSelectedCharacter.length > 0}
+
+                        <label class="text-sm font-bold text-text-muted uppercase text-center">Eventos participados:</label>
+
+                        <div class="flex flex-col gap-4 overflow-y-auto scrollbar-hide p-4 border border-primary rounded-xl max-h-60">
+
+                            {#each eventsOfSelectedCharacter as event}
+                                <div class="
+                                    flex flex-col p-3 rounded-lg border border-text-muted/10 shadow-sm bg-surface/80 backdrop-blur-sm
+                                    group-hover:shadow-lg group-hover:border-primary/30 group-hover:-translate-y-1 transition-all
+                                    text-left items-start"
+                                >
+                                    <span class="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
+                                        {event.date.day} / {event.date.month} / {event.date.year} - {event.date.hour}:{event.date.minute}
+                                    </span>
+                                    <h3 class="font-bold text-text-main font-serif leading-tight">{event.name}</h3>
+                                    {#if event.description}
+                                        <p class="text-xs text-text-muted line-clamp-2 mt-1 opacity-80">{event.description}</p>
+                                    {/if}
+                                </div>
+                            {/each}
+
+                        </div>
+
+                    {:else}
+                        <label class="text-sm font-bold text-text-muted uppercase text-center">Esse personagem não participou de nenhum evento</label>
+                    {/if}
+
                 </div>
 
                 <div class="flex-1 space-y-6">
