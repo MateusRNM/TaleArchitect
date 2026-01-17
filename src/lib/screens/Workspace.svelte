@@ -1,21 +1,22 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { projectStore } from '$lib/stores/project.svelte';
     import { appState } from '$lib/stores/app.svelte';
-    import { ask } from "@tauri-apps/plugin-dialog";
-    import { Map, Calendar, Users, Settings, ArrowLeft, Save } from 'lucide-svelte';
-    import SectionMap from './sections/SectionMap.svelte';
-    import SectionTimeline from './sections/SectionTimeline.svelte';
-    import SectionCharacters from './sections/SectionCharacters.svelte';
-    import SectionSettings from './sections/SectionSettings.svelte';
-
+    import { ArrowLeft, Save } from 'lucide-svelte';
+    import { uiManager } from '$lib/stores/ui.svelte';
+    import { commandRegistry } from '$lib/services/commands';
+    import { registerWorkspaceCommands } from '$lib/controllers/workspaceController';
     let isSaving = $state(false);
+    let activeTabDefinition = $derived(uiManager.tabs.find(t => t.id === appState.activeTab));
+
+    onMount(() => {
+        registerWorkspaceCommands();
+    });
 
     async function handleSave() {
-        if (projectStore.current) {
-            isSaving = true;
-            await projectStore.save();
-            setTimeout(() => isSaving = false, 800);
-        }
+        isSaving = true;
+        await commandRegistry.execute('project:save');
+        setTimeout(() => isSaving = false, 800);
     }
 
     function handleKeydown(event: KeyboardEvent) {
@@ -26,17 +27,7 @@
     }
 
     async function closeProject() {
-        if(projectStore.current?.changesUnsaved) {
-            const confirmed = await ask('O seu projeto possui alterações que não foram salvas. Deseja salvar antes de sair?', {
-                title: 'Alterações não salvas',
-                kind: 'warning'
-            });
-            if(confirmed) { 
-                await projectStore.save();
-            }
-        }
-        projectStore.close();
-        appState.goToLauncher();
+        await commandRegistry.execute('project:close');
     }
 </script>
 
@@ -66,25 +57,20 @@
         </div>
 
         <nav class="flex items-center gap-2 bg-background/50 p-1 rounded-lg border border-text-muted/10">
-            {#snippet tabButton(id, label, Icon)}
+            {#each uiManager.sortedTabs as tab (tab.id)}
                 <button 
-                    onclick={() => appState.activeTab = id}
+                    onclick={() => commandRegistry.execute('ui:navigate', { tabId: tab.id })}
                     class="
                         flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
-                        {appState.activeTab === id 
+                        {appState.activeTab === tab.id 
                             ? 'bg-primary text-background shadow-md' 
                             : 'text-text-muted hover:bg-surface hover:text-text-main'}
                     "
                 >
-                    <Icon size={16} strokeWidth={appState.activeTab === id ? 2.5 : 2} />
-                    {label}
+                    <tab.icon size={16} strokeWidth={appState.activeTab === tab.id ? 2.5 : 2} />
+                    {tab.label}
                 </button>
-            {/snippet}
-
-            {@render tabButton('map', 'Mapa', Map)}
-            {@render tabButton('timeline', 'Timeline', Calendar)}
-            {@render tabButton('characters', 'Personagens', Users)}
-            {@render tabButton('settings', 'Configurações', Settings)}
+            {/each}
         </nav>
 
         <div class="flex items-center justify-end gap-3 w-1/4">
@@ -110,16 +96,14 @@
         </div>
     </header>
 
-    <main class="flex-1 relative bg-background">
-        {#if appState.activeTab === 'map'}
-            <SectionMap />
-        {:else if appState.activeTab === 'timeline'}
-            <SectionTimeline />
-        {:else if appState.activeTab === 'characters'}
-            <SectionCharacters />
-        {:else if appState.activeTab === 'settings'}
-            <SectionSettings />
+    <main class="flex-1 relative bg-background overflow-hidden">
+        
+        {#if activeTabDefinition}
+            <activeTabDefinition.component/>
+        {:else}
+            <div class="flex items-center justify-center h-full text-text-muted">Aba não encontrada</div>
         {/if}
+
     </main>
 
 </div>

@@ -1,111 +1,38 @@
 <script lang="ts">
-    import { projectStore } from '$lib/stores/project.svelte';
-    import { appState } from '$lib/stores/app.svelte';
-    import { save, open } from '@tauri-apps/plugin-dialog';
     import { onMount } from 'svelte';
     import { Folder, Calendar, Clock, ArrowRight, FolderOpen, Plus, ArrowLeft } from 'lucide-svelte';
-    import { exists } from '@tauri-apps/plugin-fs';
-    import type { RecentProject } from '$lib/models/project';
-
-    let recentProjects: RecentProject[] = $state([]);
+    import { recentStore } from '$lib/stores/recent.svelte';
+    import { commandRegistry } from '$lib/services/commands'; 
+    import { registerLauncherCommands } from '$lib/controllers/launcherController';
     let creatingProject: boolean = $state(false);
     let newProjectName: string = $state("");
     let errorMsg: string = $state("");
 
-    function sortAndSaveProjects() {
-        recentProjects.sort((a, b) => {
-            return new Date(b.lastOpenedAt).getTime() - new Date(a.lastOpenedAt).getTime();
-        });
-        localStorage.setItem('recentProjects', JSON.stringify(recentProjects));
-    }
-
-    onMount(async () => {
-        const saved = localStorage.getItem('recentProjects');
-        if(saved){
-            recentProjects = JSON.parse(saved);
-            const checkExistence = await Promise.all(
-                recentProjects.map(async (p) => {
-                    const fileExists = await exists(p.dir);
-                    return fileExists ? p : null;
-                })
-            );
-            recentProjects = checkExistence.filter((p) => p !== null) as RecentProject[];
-            sortAndSaveProjects();
-        } 
+    onMount(() => {
+        registerLauncherCommands();
     });
 
-    function manageCreateProject() {
-        if(!creatingProject) {
-            creatingProject = true;
-            newProjectName = "";
-            errorMsg = "";
-        } else {
-            creatingProject = false;
-            newProjectName = "";
-            errorMsg = "";
-        }
+    function toggleCreateMode() {
+        creatingProject = !creatingProject;
+        newProjectName = "";
+        errorMsg = "";
     }
 
     async function handleCreate() {
         errorMsg = "";
-        if(newProjectName === '') {
-            errorMsg = "Digite um nome para o projeto.";
-            return;
-        }
-
-        const path = await save({
-            filters: [{ name: 'Projeto TaleArchitect', extensions: ['talearc'] }]
-        });
-
-        if (path) {            
-            try {
-                await projectStore.create(newProjectName, path);
-                recentProjects.push({
-                    name: projectStore.current?.data.name || '',
-                    dir: path,
-                    createdAt: projectStore.current?.data.createdAt || '',
-                    lastOpenedAt: projectStore.current?.data.lastOpenedAt || '',
-                });
-                sortAndSaveProjects();
-                appState.goToWorkspace();
-            } catch (e) {
-                console.error(e);
-            }
+        try {
+            await commandRegistry.execute('project:create', { name: newProjectName });
+        } catch (e) {
+            console.error(e);
+            errorMsg = "Erro ao criar projeto ou ação cancelada.";
         }
     }
 
-    async function handleOpen(pathdir: string | null) {
-        let path;
-        if(!pathdir) {
-            path = await open({
-                multiple: false,
-                filters: [{ name: 'Projeto TaleArchitect', extensions: ['talearc'] }]
-            });
-        } else {
-            path = pathdir;
-        }
-
-        if (path && typeof path === 'string') {
-            try {
-                await projectStore.load(path);
-                let inList = recentProjects.findIndex((v: RecentProject) => v.dir === path);
-                if(inList !== -1) {
-                    recentProjects[inList].lastOpenedAt = projectStore.current?.data.lastOpenedAt || '';
-                    if(projectStore.current?.data.name) {
-                        recentProjects[inList].name = projectStore.current.data.name;
-                    }
-                } else {
-                    recentProjects.push({
-                        name: projectStore.current?.data.name || '',
-                        dir: path,
-                        createdAt: projectStore.current?.data.createdAt || '',
-                        lastOpenedAt: projectStore.current?.data.lastOpenedAt || '',
-                    });
-                }
-                sortAndSaveProjects();
-                appState.goToWorkspace();
-            } catch (e) {
-            }
+    async function handleOpen(path: string | null = null) {
+        try {
+            await commandRegistry.execute('project:open', path ? { path } : undefined);
+        } catch (e) {
+            console.error(e);
         }
     }
 </script>
@@ -125,12 +52,12 @@
                     <h2 class="text-xl font-serif font-bold text-text-main">Projetos Recentes</h2>
                     
                     <span class="text-xs text-text-muted uppercase tracking-wider font-bold bg-background px-2 py-1 rounded-full shadow-sm">
-                        {recentProjects.length} {recentProjects.length === 0 ? 'NENHUM ENCONTRADO' : recentProjects.length === 1 ? 'ENCONTRADO' : 'ENCONTRADOS'}
+                        {recentStore.list.length} {recentStore.list.length === 0 ? 'NENHUM ENCONTRADO' : recentStore.list.length === 1 ? 'ENCONTRADO' : 'ENCONTRADOS'}
                     </span>
                 </div>
 
                 <div class="flex flex-col gap-3 overflow-y-auto pr-2 flex-1 scrollbar-thin scrollbar-thumb-text-muted/50 scrollbar-hide">
-                    {#each recentProjects as project}
+                    {#each recentStore.list as project}
                         <button onclick={() => handleOpen(project.dir)} class="group flex flex-col gap-2 rounded-lg border border-text-muted/20 bg-background p-4 text-left transition-all hover:border-primary hover:shadow-md active:scale-[0.98] cursor-pointer w-full focus:outline-none focus:ring-2 focus:ring-primary/50">
                             
                             <div class="flex w-full items-start justify-between">
@@ -143,7 +70,6 @@
                                         Aberto em {new Date(project.lastOpenedAt).toLocaleDateString()}
                                     </p>
                                 </div>
-                                
                                 <ArrowRight class="text-secondary opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 shrink-0" size={18} />
                             </div>
 
@@ -154,7 +80,6 @@
                                         {project.dir}
                                     </span>
                                 </div>
-                                
                                 <div class="hidden sm:flex items-center gap-1.5 text-xs text-text-muted" title="Data de Criação">
                                     <Calendar size={12} />
                                     {new Date(project.createdAt).toLocaleDateString()}
@@ -163,7 +88,7 @@
                         </button>
                     {/each}
                     
-                    {#if recentProjects.length === 0}
+                    {#if recentStore.list.length === 0}
                         <div class="flex h-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-text-muted/30 text-text-muted/70 gap-2">
                             <FolderOpen size={48} strokeWidth={1} class="opacity-50"/>
                             <p class="font-serif italic text-sm">Nenhum projeto encontrado...</p>
@@ -173,7 +98,7 @@
             </div>
 
             <div class="w-full flex flex-col gap-3 mt-2">
-                <button onclick={manageCreateProject} class="flex items-center justify-center gap-2 bg-primary text-background p-3 rounded-lg font-bold shadow-md hover:brightness-110 active:translate-y-0.5 transition-all w-full focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer">
+                <button onclick={toggleCreateMode} class="flex items-center justify-center gap-2 bg-primary text-background p-3 rounded-lg font-bold shadow-md hover:brightness-110 active:translate-y-0.5 transition-all w-full focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer">
                     <Plus size={20} strokeWidth={2.5} />
                     Criar Novo Projeto
                 </button>
@@ -184,7 +109,7 @@
                 </button>
             </div>
         {:else}
-            <button onclick={manageCreateProject} class="relative -left-1/2 text-secondary transition-all shrink-0 hover:text-primary cursor-pointer hover:-translate-y-1">
+            <button onclick={toggleCreateMode} class="relative -left-1/2 text-secondary transition-all shrink-0 hover:text-primary cursor-pointer hover:-translate-y-1">
                 <ArrowLeft size={20} strokeWidth={2.5}/>
             </button>
             <p class="text-primary h-5 transition-all">{errorMsg}</p>

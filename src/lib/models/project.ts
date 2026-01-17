@@ -9,8 +9,8 @@ export interface Time {
 export interface Character {
     id: UUID;
     name: string;
-    image: string;
-    description: string | null;
+    image: string | null;
+    description: string;
     createdAt: string;
 }
 
@@ -50,11 +50,4 @@ export interface ProjectData {
     locations: Location[];
     connections: Connection[];
     events: Event[];
-}
-
-export interface RecentProject {
-    dir: string;
-    name: string;
-    createdAt: string;
-    lastOpenedAt: string;
 }

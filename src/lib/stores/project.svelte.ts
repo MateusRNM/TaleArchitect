@@ -11,7 +11,7 @@ export class ActiveProject {
         this.data = initialData;
     }
 
-    addCharacter(name: string, description: string, image: string) {
+    addCharacter(name: string, description: string, image: string | null) {
         const newChar: Character = {
             id: crypto.randomUUID(),
             name,
@@ -46,6 +46,14 @@ export class ActiveProject {
         this.changesUnsaved = true;
     }
 
+    removeLocation(locationId: string) {
+        this.data.connections = this.data.connections.filter(
+            c => c.fromLocationId !== locationId && c.toLocationId !== locationId
+        );
+        this.data.locations = this.data.locations.filter(l => l.id !== locationId);
+        this.changesUnsaved = true;
+    }
+
     connectLocations(name: string, description: string, fromId: string, toId: string) {
         const idx = this.data.connections.findIndex((v) => (v.fromLocationId === fromId && v.toLocationId === toId) || (v.fromLocationId === toId && v.toLocationId === fromId));
         if(idx === -1) {
@@ -58,6 +66,11 @@ export class ActiveProject {
             });
             this.changesUnsaved = true;
         }
+    }
+
+    removeConnection(connectionId: string) {
+        this.data.connections = this.data.connections.filter(c => c.id !== connectionId);
+        this.changesUnsaved = true;
     }
 
     addEvent(name: string, description: string, locationId: string, date: Time, characterIds: string[] = []) {

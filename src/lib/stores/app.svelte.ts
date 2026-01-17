@@ -1,6 +1,6 @@
 export const appState = $state({
     view: 'launcher' as 'launcher' | 'workspace',
-    activeTab: 'map' as 'map' | 'timeline' | 'characters' | 'settings',
+    activeTab: 'map' as string,
     
     goToWorkspace() {
         this.view = 'workspace';

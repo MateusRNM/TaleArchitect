@@ -1,60 +1,22 @@
 <script lang="ts">
     import { projectStore } from '$lib/stores/project.svelte';
-    import { appState } from '$lib/stores/app.svelte';
-    import { ask, message } from '@tauri-apps/plugin-dialog';
+    import { commandRegistry } from '$lib/services/commands';
     import { Trash2, Calendar, Type, AlertTriangle, RotateCcw } from 'lucide-svelte';
-
-    function handleChange() {
-        if (projectStore.current) {
-            projectStore.current.changesUnsaved = true;
-        }
+    
+    function updateConfig(key: string, value: any, subkey?: string) {
+        commandRegistry.execute('project:config:update', { key, value, subkey });
     }
 
-    async function handleRename() {
-        if(projectStore.current?.data.name === '') return;
-        await projectStore.save();
-        updateRecentList();
+    function handleRename() {
+        commandRegistry.execute('project:rename');
     }
 
-    async function handleDelete() {
-        if (!projectStore.current) return;
-
-        const confirmed = await ask('Tem certeza que deseja excluir este projeto permanentemente?\nO arquivo será apagado do disco.', { 
-            title: 'Excluir Projeto',
-            kind: 'warning'
-        });
-
-        if (confirmed) {
-            try {
-                const dir = projectStore.current.data.projectdir;
-                await projectStore.deleteProject();
-                removeFromRecentList(dir);
-                appState.goToLauncher();
-            } catch (e) {
-                await message('Erro ao deletar arquivo: ' + e, { kind: 'error' });
-            }
-        }
+    function handleDelete() {
+        commandRegistry.execute('project:delete');
     }
-
-    function updateRecentList() {
-        const saved = localStorage.getItem('recentProjects');
-        if (saved && projectStore.current) {
-            const list = JSON.parse(saved);
-            const index = list.findIndex((p: any) => p.dir === projectStore.current?.data.projectdir);
-            if (index !== -1) {
-                list[index].name = projectStore.current.data.name;
-                localStorage.setItem('recentProjects', JSON.stringify(list));
-            }
-        }
-    }
-
-    function removeFromRecentList(dir: string) {
-        const saved = localStorage.getItem('recentProjects');
-        if (saved) {
-            const list = JSON.parse(saved);
-            const newList = list.filter((p: any) => p.dir !== dir);
-            localStorage.setItem('recentProjects', JSON.stringify(newList));
-        }
+    
+    function handleResetCalendar() {
+        commandRegistry.execute('project:calendar:reset');
     }
 </script>
 
@@ -95,7 +57,7 @@
                     <button 
                         onclick={async () => { 
                             if(projectStore.current) {
-                                projectStore.current.data.autosave = !projectStore.current.data.autosave;
+                                updateConfig('autosave', !projectStore.current.data.autosave);
                                 await projectStore.save();
                             }
                         }}
@@ -134,7 +96,7 @@
                                 autocomplete="off" 
                                 spellcheck="false"
                                 bind:value={projectStore.current.data.calendar.monthDuration}
-                                oninput={handleChange}
+                                oninput={(e) => updateConfig('calendar', parseInt(e.currentTarget.value), 'monthDuration')}
                                 class="w-full bg-background border border-text-muted/30 rounded-lg p-3 pl-4 text-text-main focus:ring-2 focus:ring-secondary outline-none font-mono"
                             />
                             <span class="absolute right-4 top-3 text-xs text-text-muted">Dias</span>
@@ -151,7 +113,7 @@
                                 autocomplete="off" 
                                 spellcheck="false"
                                 bind:value={projectStore.current.data.calendar.yearDuration}
-                                oninput={handleChange}
+                                oninput={(e) => updateConfig('calendar', parseInt(e.currentTarget.value), 'yearDuration')}
                                 class="w-full bg-background border border-text-muted/30 rounded-lg p-3 pl-4 text-text-main focus:ring-2 focus:ring-secondary outline-none font-mono"
                             />
                             <span class="absolute right-4 top-3 text-xs text-text-muted">Meses</span>
@@ -161,12 +123,7 @@
 
                 <div class="flex justify-end">
                      <button 
-                        onclick={() => {
-                            if(projectStore.current) {
-                                projectStore.current.data.calendar = { monthDuration: 30, yearDuration: 12 };
-                                handleChange();
-                            }
-                        }}
+                        onclick={handleResetCalendar}
                         class="text-xs text-secondary hover:underline flex items-center gap-1 cursor-pointer"
                     >
                         <RotateCcw size={12} />

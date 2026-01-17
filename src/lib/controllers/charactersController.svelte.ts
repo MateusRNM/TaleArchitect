@@ -1,0 +1,102 @@
+import { projectStore } from '$lib/stores/project.svelte';
+import { commandRegistry } from '$lib/services/commands';
+import { open, ask } from '@tauri-apps/plugin-dialog';
+
+export const charState = $state({
+    view: 'list' as 'list' | 'form',
+    selectedId: null as string | null,
+    formData: {
+        name: '',
+        description: '',
+        image: null as string | null
+    },
+    searchQuery: '',
+    sortBy: 'date' as 'date' | 'name'
+});
+
+function openCreateCommand() {
+    resetForm();
+    charState.view = 'form';
+}
+
+function openEditCommand(args: { id: string }) {
+    const char = projectStore.current?.data.characters.find(c => c.id === args.id);
+    if (!char) return;
+
+    charState.selectedId = char.id;
+    charState.formData = {
+        name: char.name,
+        description: char.description,
+        image: char.image || null
+    };
+    charState.view = 'form';
+}
+
+function closeFormCommand() {
+    charState.view = 'list';
+    resetForm();
+}
+
+async function saveCharacterCommand() {
+    if (!charState.formData.name) return;
+
+    if (charState.selectedId) {
+        projectStore.current?.updateCharacter(charState.selectedId, {
+            name: charState.formData.name,
+            description: charState.formData.description,
+            image: charState.formData.image
+        });
+    } else {
+        projectStore.current?.addCharacter(
+            charState.formData.name,
+            charState.formData.description,
+            charState.formData.image
+        );
+    }
+    
+    charState.view = 'list';
+    resetForm();
+}
+
+async function deleteCharacterCommand(args: { id: string }) {
+    const confirmed = await ask('Tem certeza que deseja deletar esse personagem?', {
+        title: 'Confirmação', kind: 'warning'
+    });
+
+    if (confirmed) {
+        projectStore.current?.removeCharacter(args.id);
+        if (charState.selectedId === args.id) {
+            closeFormCommand();
+        }
+    }
+}
+
+async function pickImageCommand() {
+    const file = await open({
+        multiple: false,
+        filters: [{ name: 'Imagens', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+    });
+    
+    if (file && typeof file === 'string') {
+        charState.formData.image = file;
+    }
+}
+
+function removeImageCommand() {
+    charState.formData.image = null;
+}
+
+function resetForm() {
+    charState.selectedId = null;
+    charState.formData = { name: '', description: '', image: null };
+}
+
+export function registerCharacterCommands() {
+    commandRegistry.register('char:create', openCreateCommand, 'Abrir formulário de novo personagem');
+    commandRegistry.register('char:edit', openEditCommand, 'Editar personagem existente');
+    commandRegistry.register('char:save', saveCharacterCommand, 'Salvar formulário atual');
+    commandRegistry.register('char:delete', deleteCharacterCommand, 'Deletar personagem');
+    commandRegistry.register('char:cancel', closeFormCommand, 'Cancelar edição/criação');
+    commandRegistry.register('char:image:pick', pickImageCommand, 'Selecionar imagem do disco');
+    commandRegistry.register('char:image:remove', removeImageCommand, 'Remover imagem do formulário');
+}

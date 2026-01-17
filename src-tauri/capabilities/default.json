@@ -12,6 +12,7 @@
     { "identifier": "fs:allow-read-file", "allow": [{ "path": "**"}] },
     { "identifier": "fs:allow-read-text-file", "allow": [{ "path": "**"}] },
     { "identifier": "fs:allow-write-text-file", "allow": [{ "path": "**"}] },
+    { "identifier": "fs:allow-remove", "allow": [{ "path": "**"}] },
     { "identifier": "fs:allow-exists", "allow": [{ "path": "**"}] }
   ],
   "platforms": ["linux", "macOS", "windows"]
