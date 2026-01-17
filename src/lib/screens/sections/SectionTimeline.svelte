@@ -268,7 +268,7 @@
                     {#if projectStore.current && projectStore.current.data.characters.length > 0}
                         <div class="flex flex-col gap-2">
                             <label class="text-sm font-bold text-text-muted uppercase flex items-center gap-2"><Users size={14}/> Personagens</label>
-                            <div class="bg-background border border-text-muted/30 rounded-lg p-2 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-text-muted/20">
+                            <div class="bg-background border border-text-muted/30 rounded-lg p-2 max-h-40 overflow-y-auto scrollbar-hide">
                                 <div class="grid grid-cols-2 gap-2">
                                     {#each projectStore.current.data.characters as char}
                                         {@const isSelected = timelineController.formData.characters.includes(char.id)}
