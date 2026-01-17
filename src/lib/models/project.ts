@@ -19,6 +19,8 @@ export interface Time {
     day: number;
     month: number;
     year: number;
+    hour?: number;
+    minute?: number;
 }
 
 export interface Month {

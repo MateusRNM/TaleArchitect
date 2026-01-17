@@ -49,6 +49,13 @@
         isDragging = false;
         if(svgContainer) svgContainer.releasePointerCapture(e.pointerId);
     }
+
+    function formatTime(h?: number, m?: number) {
+        if (h === undefined || m === undefined) return '';
+        const hh = h.toString().padStart(2, '0');
+        const mm = m.toString().padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
 </script>
 
 <div class="relative w-full h-full bg-[#f1e0b9] overflow-hidden flex flex-col">
@@ -65,6 +72,11 @@
                     <span class="font-serif font-bold text-lg text-text-main">
                         {timelineController.currentDate.day}/{timelineController.currentDate.month}/{timelineController.currentDate.year}
                     </span>
+                    {#if timelineController.currentDate.hour !== undefined}
+                        <span class="bg-primary/10 px-1 rounded text-primary/80 text-center">
+                            {formatTime(timelineController.currentDate.hour, timelineController.currentDate.minute)}
+                        </span>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -126,7 +138,7 @@
                                 {isEven ? 'text-left items-start' : 'text-right items-end'}
                             ">
                                 <span class="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
-                                    {event.date.day} / {getMonthName(event.date.month)} / {event.date.year}
+                                    {event.date.day} / {getMonthName(event.date.month)} / {event.date.year} - {event.date.hour}:{event.date.minute}
                                 </span>
                                 <h3 class="font-bold text-text-main font-serif leading-tight">{event.name}</h3>
                                 {#if event.description}
@@ -183,29 +195,51 @@
 
             <div class="space-y-6 flex-1">
                 <div class="bg-surface p-6 rounded-xl border border-text-muted/20 shadow-sm space-y-4">
+
                     <h3 class="text-sm font-bold uppercase text-text-muted flex items-center gap-2">
                         <Calendar size={16} /> Data
                     </h3>
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-bold text-text-muted">Dia</label>
-                            <input type="number" min="1" max={maxDaysInSelectedMonth} bind:value={timelineController.formData.date.day} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-bold text-text-muted">Mês</label>
-                            <select bind:value={timelineController.formData.date.month} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none">
-                                {#if projectStore.current}
-                                    {#each projectStore.current.data.calendar.months as m, i}
-                                        <option value={i + 1}>{m.name}</option>
-                                    {/each}
-                                {/if}
-                            </select>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs font-bold text-text-muted">Ano</label>
-                            <input type="number" min="1" bind:value={timelineController.formData.date.year} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
+
+                    <div class="grid grid-cols-5 gap-4"> <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-text-muted">Dia</label>
+                        <input type="number" min="1" max={maxDaysInSelectedMonth} bind:value={timelineController.formData.date.day} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
+                    </div>
+                    
+                    <div class="flex flex-col gap-1 col-span-2">
+                        <label class="text-xs font-bold text-text-muted">Mês</label>
+                        <select bind:value={timelineController.formData.date.month} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none">
+                            {#if projectStore.current}
+                                {#each projectStore.current.data.calendar.months as m, i}
+                                    <option value={i + 1}>{m.name}</option>
+                                {/each}
+                            {/if}
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-text-muted">Ano</label>
+                        <input type="number" min="1" bind:value={timelineController.formData.date.year} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-bold text-text-muted">Hora</label>
+                        <div class="flex items-center gap-1">
+                            <input 
+                                type="number" min="0" max="23" placeholder="00"
+                                bind:value={timelineController.formData.date.hour} 
+                                class="w-full bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none text-center" 
+                            />
+                            <span class="text-text-muted font-bold">:</span>
+                            <input 
+                                type="number" min="0" max="59" placeholder="00"
+                                bind:value={timelineController.formData.date.minute} 
+                                class="w-full bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none text-center" 
+                            />
                         </div>
                     </div>
+
+                </div>
+
                 </div>
 
                 <div class="flex flex-col gap-2">

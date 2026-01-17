@@ -11,7 +11,7 @@ class TimelineController {
     formData = $state({
         name: '',
         description: '',
-        date: { day: 1, month: 1, year: 1 } as Time,
+        date: { day: 1, month: 1, year: 1, hour: 0, minute: 0 } as Time,
         locationId: '' as string,
         characters: [] as string[]
     });
@@ -47,7 +47,9 @@ class TimelineController {
         }
 
         totalDays += date.day;
-        return totalDays;
+
+        const totalMinutes = (totalDays * 1440) + ((date.hour || 0) * 60) + (date.minute || 0);
+        return totalMinutes;
     }
 
     toggleCharacterInForm(charId: string) {
@@ -61,11 +63,11 @@ class TimelineController {
 
     resetForm() {
         this.selectedEventId = null;
-        const lastDate = this.sortedEvents.length > 0 ? this.currentDate : { day: 1, month: 1, year: 1 };
+        const lastDate = this.sortedEvents.length > 0 ? { ...this.currentDate } : { day: 1, month: 1, year: 1, hour: 12, minute: 0 };
         this.formData = {
             name: '',
             description: '',
-            date: { ...lastDate },
+            date: lastDate,
             locationId: '',
             characters: []
         };
