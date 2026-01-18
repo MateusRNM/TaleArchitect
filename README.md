@@ -84,7 +84,7 @@ Este projeto utiliza as seguintes tecnologias:
 
 ```bash
 # 1. Clone o repositório
-git clone [https://github.com/MateusRNM/TaleArchitect.git](https://github.com/MateusRNM/TaleArchitect.git)
+git clone https://github.com/MateusRNM/TaleArchitect.git
 cd TaleArchitect
 
 # 2. Instale as dependências
