@@ -326,6 +326,13 @@
                     </g>
                 {/each}
             {/if}
+
+            {#if projectStore.current?.data.locations.length === 0}
+                {@const pos = toWorld(mapState.view.x+800, mapState.view.y+200)}
+                <text x={pos.x} y={pos.y} text-anchor="middle" class="font-serif text-xl font-bold fill-text-main pointer-events-none select-none">
+                    Adicione locais no mapa e crie conexões entre eles para formar seu mundo!
+                </text>
+            {/if}
         </g>
     </svg>
 </div>

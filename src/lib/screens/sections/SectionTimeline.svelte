@@ -174,7 +174,7 @@
                 {/each}
 
                 {#if timelineController.sortedEvents.length === 0}
-                    <text x="50%" y="200" text-anchor="middle" class="fill-text-muted text-sm italic font-serif opacity-50">
+                    <text x="50%" y="200" text-anchor="middle" class="fill-text-muted text-2xl italic font-serif opacity-50">
                         Ainda não há nenhum evento...
                     </text>
                 {/if}
