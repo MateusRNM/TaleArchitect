@@ -89,6 +89,12 @@ function cancelConnectionCommand() {
     mapState.connection = { active: false, fromId: null, currX: 0, currY: 0 };
 }
 
+function setViewCommand(args: { x?: number, y?:number, k?: number }) {
+    if(args.x) mapState.view.x = args.x;
+    if(args.y) mapState.view.y = args.y;
+    if(args.k) mapState.view.k = args.k;
+}
+
 export function registerMapCommands() {
     commandRegistry.register('map:location:create', createLocationCommand, {
         description: 'Cria um novo local',
@@ -111,4 +117,5 @@ export function registerMapCommands() {
     });
     
     commandRegistry.register('map:connection:cancel', cancelConnectionCommand, 'Cancela uma conexão');
+    commandRegistry.register('map:setview', setViewCommand, 'Muda os valores da view da câmera');
 }

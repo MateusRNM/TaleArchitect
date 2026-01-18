@@ -5,6 +5,8 @@ import { historyStore } from '$lib/stores/history.svelte';
 import { ask, message } from '@tauri-apps/plugin-dialog';
 import type { Character, Event, Location, Time } from '$lib/models/project';
 import { timelineController } from '$lib/controllers/timelineController.svelte';
+import { appState } from '$lib/stores/app.svelte';
+import { mapState } from '$lib/controllers/mapController.svelte';
 
 type EventCallback = (data: any) => void;
 
@@ -32,6 +34,11 @@ export class PluginBridge {
             getLocations: async (): Promise<Location[]> => {
                 if (!projectStore.current) return [];
                 return structuredClone($state.snapshot(projectStore.current.data.locations));
+            },
+
+            getConnections() {
+                if (!projectStore.current) return [];
+                return structuredClone($state.snapshot(projectStore.current.data.connections));
             },
 
             getEvents: async (): Promise<Event[]> => {
@@ -94,6 +101,27 @@ export class PluginBridge {
                 this.emitInternal('event:added', newEvent);
 
                 return id;
+            },
+
+            createLocation: async (name: string, description: string = '', x = 0, y = 0): Promise<string | null> => {
+                if (!projectStore.current) return null;
+
+                historyStore.capture(); 
+
+                const id = crypto.randomUUID();
+                const newLocation: Location = {
+                    id,
+                    name,
+                    description,
+                    coordinates: { x, y }
+                };
+
+                projectStore.current.data.locations.push(newLocation);
+                projectStore.current.changesUnsaved = true;
+
+                this.emitInternal('location:added', newLocation);
+
+                return id;
             }
         },
 
@@ -117,6 +145,27 @@ export class PluginBridge {
                     this.listeners.set(event, []);
                 }
                 this.listeners.get(event)?.push(callback);
+            }
+        },
+
+        context: {
+            getActiveTab: () => {
+                return $state.snapshot(appState.activeTab);
+            },
+
+            getStates: () => {
+                return {
+                    map: {
+                        view: structuredClone($state.snapshot(mapState.view)), 
+                        selectedLocationId: $state.snapshot(mapState.selectedLocationId),
+                        selectedConnectionId: $state.snapshot(mapState.selectedConnectionId)
+                    },
+                    timeline: {
+                        selectedEventId: $state.snapshot(timelineController.selectedEventId),
+                        scrollY: $state.snapshot(timelineController.scrollY),
+                        view: $state.snapshot(timelineController.view)
+                    }
+                };
             }
         }
     };
