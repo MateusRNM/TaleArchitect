@@ -4,6 +4,7 @@ import { toastStore } from '$lib/stores/toasts.svelte';
 import { historyStore } from '$lib/stores/history.svelte';
 import { ask, message } from '@tauri-apps/plugin-dialog';
 import type { Character, Event, Location, Time } from '$lib/models/project';
+import { timelineController } from '$lib/controllers/timelineController.svelte';
 
 type EventCallback = (data: any) => void;
 
@@ -41,6 +42,11 @@ export class PluginBridge {
             getCalendar: async () => {
                 if (!projectStore.current) return null;
                 return structuredClone($state.snapshot(projectStore.current.data.calendar));
+            },
+
+            getCurrentDate: async () => {
+                if (!projectStore.current) return null;
+                return structuredClone($state.snapshot(timelineController.currentDate));
             }
         },
 
@@ -92,8 +98,8 @@ export class PluginBridge {
         },
 
         ui: {
-            toast: (msg: string, type: 'success' | 'error' | 'info' = 'info') => {
-                toastStore.add(msg, type);
+            toast: (msg: string, type: 'success' | 'error' | 'info' = 'info', duration: number = 3000) => {
+                toastStore.add(msg, type, duration);
             },
 
             alert: async (msg: string, title: string = 'Plugin Alert') => {
@@ -126,6 +132,10 @@ export class PluginBridge {
                 }
             });
         }
+    }
+
+    public reset() {
+        this.listeners.clear();
     }
 }
 

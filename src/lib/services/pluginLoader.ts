@@ -1,4 +1,4 @@
-import { pluginBridge } from './pluginBridge';
+import { pluginBridge } from './pluginBridge.svelte';
 import { BaseDirectory, readDir, readTextFile, mkdir } from '@tauri-apps/plugin-fs';
 import { appDataDir, join } from '@tauri-apps/api/path';
 import { openPath } from '@tauri-apps/plugin-opener';
@@ -17,6 +17,9 @@ export class PluginLoader {
 
     async init() {
         try {
+
+            pluginBridge.reset();
+            this.loadedPlugins.clear();
 
             await mkdir('plugins', { 
                 baseDir: BaseDirectory.AppData, 

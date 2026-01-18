@@ -1,7 +1,7 @@
 import { type ProjectData, type Character, type Event, type Time, GREGORIAN_MONTHS, type Connection, type Location } from '$lib/models/project';
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { toastStore } from './toasts.svelte';
-import { pluginBridge } from '$lib/services/pluginBridge';
+import { pluginBridge } from '$lib/services/pluginBridge.svelte';
 
 export class ActiveProject {
 
