@@ -146,4 +146,4 @@ Esses são os eventos que você pode escutar através de `app.events.on()`:
 | | `character:updated` | Um personagem existente foi alterado. | Objeto `Character` |
 | | `character:removed` | Um personagem foi removido. | Objeto `Character` |
 
-Consulte o meu repositório com alguns plugins de template para ver mais: 
+Consulte o meu repositório com alguns plugins de template para ver mais: https://github.com/MateusRNM/talearchitect-plugin-templates
