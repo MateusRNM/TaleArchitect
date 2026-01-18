@@ -1,8 +1,9 @@
-import { ActiveProject, projectStore } from '$lib/stores/project.svelte';
-import { commandRegistry } from '$lib/services/commands';
+import { projectStore } from '$lib/stores/project.svelte';
+import { commandRegistry, type PaletteItem } from '$lib/services/commands';
 import { open, ask } from '@tauri-apps/plugin-dialog';
 import type { Event } from '$lib/models/project';
 import { timelineController } from './timelineController.svelte';
+import { User } from 'lucide-svelte';
 
 export const charState = $state({
     view: 'list' as 'list' | 'form',
@@ -19,6 +20,7 @@ export const charState = $state({
 function openCreateCommand() {
     resetForm();
     charState.view = 'form';
+    commandRegistry.execute('ui:navigate', { tabId: 'characters' });
 }
 
 function openEditCommand(args: { id: string }) {
@@ -32,6 +34,7 @@ function openEditCommand(args: { id: string }) {
         image: char.image || null
     };
     charState.view = 'form';
+    commandRegistry.execute('ui:navigate', { tabId: 'characters' });
 }
 
 function closeFormCommand() {
@@ -100,11 +103,44 @@ function getAllEvents(args: { charId: string }): Event[] {
 
 export function registerCharacterCommands() {
     commandRegistry.register('char:create', openCreateCommand, 'Abrir formulário de novo personagem');
-    commandRegistry.register('char:edit', openEditCommand, 'Editar personagem existente');
-    commandRegistry.register('char:save', saveCharacterCommand, 'Salvar formulário atual');
-    commandRegistry.register('char:delete', deleteCharacterCommand, 'Deletar personagem');
+
+    commandRegistry.register('char:edit', openEditCommand, {
+        description: 'Editar personagem existente',
+        argsProvider: () => {
+            return projectStore.current?.data.characters.map(character => ({
+                label: character.name,
+                description: character.description,
+                icon: User,
+                value: { id: character.id }
+            })) as PaletteItem[];
+        }
+    });
+
+    commandRegistry.register('char:save', saveCharacterCommand, {
+        description: 'Salvar formulário atual',
+        addToHistory: true
+    });
+
+    commandRegistry.register('char:delete', deleteCharacterCommand, {
+        description: 'Deletar personagem',
+        addToHistory: true,
+        argsProvider: () => {
+            return projectStore.current?.data.characters.map(character => ({
+                label: character.name,
+                description: character.description,
+                icon: User,
+                value: { id: character.id }
+            })) as PaletteItem[];
+        }
+    });
+
     commandRegistry.register('char:cancel', closeFormCommand, 'Cancelar edição/criação');
     commandRegistry.register('char:image:pick', pickImageCommand, 'Selecionar imagem do disco');
-    commandRegistry.register('char:image:remove', removeImageCommand, 'Remover imagem do formulário');
+
+    commandRegistry.register('char:image:remove', removeImageCommand, {
+        description: 'Remover imagem do formulário',
+        addToHistory: true
+    });
+    
     commandRegistry.register('char:events', getAllEvents, 'Retorna todos os eventos que um personagem participou em ordem cronológica crescente.');
 }

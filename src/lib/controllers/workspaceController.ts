@@ -7,6 +7,7 @@ import { registerProjectSettingsCommands } from './projectSettingsController';
 import { registerCharacterCommands } from './charactersController.svelte';
 import { registerMapCommands } from './mapController.svelte';
 import { registerTimelineCommands } from './timelineController.svelte';
+import { registerHistoryController } from './historyController';
 
 async function saveProjectCommand() {
     if (projectStore.current) {
@@ -40,10 +41,22 @@ function navigateTabCommand(args: { tabId: string }) {
 export function registerWorkspaceCommands() {
     commandRegistry.register('project:save', saveProjectCommand, 'Salvar projeto atual');
     commandRegistry.register('project:close', closeProjectCommand, 'Fechar projeto e voltar ao launcher');
-    commandRegistry.register('ui:navigate', navigateTabCommand, 'Mudar para uma aba específica');
+
+    commandRegistry.register('ui:navigate', navigateTabCommand, {
+        description: 'Mudar para uma aba específica',
+        argsProvider: () => {
+            return uiManager.tabs.map(tab => ({
+                label: tab.label,
+                description: '',
+                value: { tabId: tab.id },
+                icon: tab.icon
+            }));
+        }
+    });
 
     registerProjectSettingsCommands();
     registerCharacterCommands();
     registerMapCommands();
     registerTimelineCommands();
+    registerHistoryController();
 }

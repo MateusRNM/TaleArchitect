@@ -1,9 +1,10 @@
 import { projectStore } from '$lib/stores/project.svelte';
 import { appState } from '$lib/stores/app.svelte';
 import { recentStore } from '$lib/stores/recent.svelte';
-import { commandRegistry } from '$lib/services/commands';
+import { commandRegistry, type PaletteItem } from '$lib/services/commands';
 import { ask, message } from '@tauri-apps/plugin-dialog';
 import { GREGORIAN_MONTHS } from '$lib/models/project';
+import { Calendar } from 'lucide-svelte';
 
 async function renameProjectCommand() {
     if (!projectStore.current || projectStore.current.data.name === '') return;
@@ -90,12 +91,43 @@ function resetCalendarCommand() {
 }
 
 export function registerProjectSettingsCommands() {
-    commandRegistry.register('project:rename', renameProjectCommand, 'Salvar novo nome do projeto');
+    commandRegistry.register('project:rename', renameProjectCommand, {
+        description: 'Salvar novo nome do projeto',
+        addToHistory: true
+    });
+
     commandRegistry.register('project:delete', deleteProjectCommand, 'Deletar projeto do disco');
-    commandRegistry.register('project:config:update', updateProjectConfigCommand, 'Atualizar configuração do projeto');
-    commandRegistry.register('project:calendar:reset', resetCalendarCommand, 'Restaurar calendário padrão');
-    commandRegistry.register('project:calendar:update_month', updateMonthCommand, 'Atualizar mês específico');
-    commandRegistry.register('project:calendar:add', addMonthCommand, 'Adicionar um novo mês');
-    commandRegistry.register('project:calendar:remove', removeMonthCommand, 'Remover um mês');
-    commandRegistry.register('project:calendar:reset', resetCalendarCommand, 'Resetar para o calendário padrão (Gregoriano)');
+
+    commandRegistry.register('project:config:update', updateProjectConfigCommand, {
+        description: 'Atualizar configuração do projeto',
+        addToHistory: true
+    });
+
+    commandRegistry.register('project:calendar:reset', resetCalendarCommand, {
+        description: 'Restaurar calendário padrão',
+        addToHistory: true
+    });
+
+    commandRegistry.register('project:calendar:update_month', updateMonthCommand, {
+        description: 'Atualizar mês específico',
+        addToHistory: true
+    });
+
+    commandRegistry.register('project:calendar:add', addMonthCommand, {
+        description: 'Adicionar um novo mês',
+        addToHistory: true
+    });
+
+    commandRegistry.register('project:calendar:remove', removeMonthCommand, {
+        description: 'Remover um mês',
+        addToHistory: true,
+        argsProvider: () => {
+            return projectStore.current?.data.calendar.months.map((month, i) => ({
+                label: month.name,
+                description: String(i+1),
+                icon: Calendar,
+                value: { index: i }
+            })) as PaletteItem[];
+        }
+    });
 }

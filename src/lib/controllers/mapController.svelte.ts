@@ -90,12 +90,25 @@ function cancelConnectionCommand() {
 }
 
 export function registerMapCommands() {
-    commandRegistry.register('map:location:create', createLocationCommand, 'Cria um novo local');
-    commandRegistry.register('map:selection:delete', deleteSelectionCommand, 'Deleta o objeto selecionado (conexão ou local)');
+    commandRegistry.register('map:location:create', createLocationCommand, {
+        description: 'Cria um novo local',
+        addToHistory: true
+    });
+
+    commandRegistry.register('map:selection:delete', deleteSelectionCommand, {
+        description: 'Deleta o objeto selecionado (conexão ou local)',
+        addToHistory: true
+    });
+
     commandRegistry.register('map:camera:reset', resetCameraCommand, 'Reseta a câmera para a posição e zoom inicial');
     commandRegistry.register('map:camera:zoomIn', zoomInCommand, 'Aumenta o zoom');
     commandRegistry.register('map:camera:zoomOut', zoomOutCommand, 'Diminui o zoom');
     commandRegistry.register('map:connection:start', startConnectionCommand, 'Começa uma conexão');
-    commandRegistry.register('map:connection:complete', completeConnectionCommand, 'Completa uma conexão');
+
+    commandRegistry.register('map:connection:complete', completeConnectionCommand, {
+        description: 'Completa uma conexão',
+        addToHistory: true
+    });
+    
     commandRegistry.register('map:connection:cancel', cancelConnectionCommand, 'Cancela uma conexão');
 }

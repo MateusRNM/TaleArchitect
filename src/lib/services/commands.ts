@@ -1,20 +1,37 @@
+import { historyStore } from "$lib/stores/history.svelte";
+
 type CommandHandler = (args?: any) => Promise<any> | any;
 
-interface Command {
-    id: string;
-    handler: CommandHandler;
+export interface PaletteItem {
+    label: string;
     description?: string;
+    value: any;
+    icon?: any;
+}
+
+export interface CommandOptions {
+    description?: string;
+    addToHistory?: boolean;
+    argsProvider?: () => PaletteItem[];
+}
+
+interface Command {
+    handler: CommandHandler;
+    options: CommandOptions;
 }
 
 class CommandManager {
 
-    private commands = new Map<string, Command>();
+    public commands = new Map<string, Command>();
 
-    register(id: string, handler: CommandHandler, description?: string) {
-        if (this.commands.has(id)) {
-            console.warn(`Comando "${id}" foi sobrescrito.`);
+    register(id: string, handler: CommandHandler, descriptionOrOptions?: string | CommandOptions) {
+        let options: CommandOptions = {};
+        if(typeof descriptionOrOptions === 'string') {
+            options = { description: descriptionOrOptions };
+        } else if(descriptionOrOptions) {
+            options = descriptionOrOptions;
         }
-        this.commands.set(id, { id, handler, description });
+        this.commands.set(id, { handler, options });
     }
 
     unregister(id: string) {
@@ -25,15 +42,17 @@ class CommandManager {
         const command = this.commands.get(id);
         
         if (!command) {
-            console.error(`Comando "${id}" não encontrado.`);
             return;
         }
 
+        if (command.options.addToHistory) {
+            historyStore.capture();
+        }
+
         try {
-            console.log(`[Command] Executando: ${id}`, args || '');
             await command.handler(args);
         } catch (error) {
-            console.error(`Erro ao executar comando "${id}":`, error);
+            throw error;
         }
     }
 

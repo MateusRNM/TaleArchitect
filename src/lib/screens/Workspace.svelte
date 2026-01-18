@@ -6,11 +6,18 @@
     import { uiManager } from '$lib/stores/ui.svelte';
     import { commandRegistry } from '$lib/services/commands';
     import { registerWorkspaceCommands } from '$lib/controllers/workspaceController';
+  import CommandPalette from '$lib/components/CommandPalette.svelte';
     let isSaving = $state(false);
     let activeTabDefinition = $derived(uiManager.tabs.find(t => t.id === appState.activeTab));
 
     onMount(() => {
         registerWorkspaceCommands();
+    });
+
+    $effect(() => {
+        if(projectStore.current?.data.autosave && projectStore.current.changesUnsaved) {
+            handleSave();
+        }
     });
 
     async function handleSave() {
@@ -20,7 +27,27 @@
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        const target = event.target as HTMLElement;
+        const isEditingText = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+        const isCtrl = event.ctrlKey || event.metaKey; 
+        const key = event.key.toLowerCase();
+
+        if (isCtrl && key === 'z' && !event.shiftKey && !isEditingText) {
+            event.preventDefault();
+            commandRegistry.execute('history:undo');
+            return;
+        }
+
+        if (isCtrl && !isEditingText) {
+            if (key === 'z' && event.shiftKey) {
+                event.preventDefault();
+                commandRegistry.execute('history:redo');
+                return;
+            }
+        }
+        
+        if (isCtrl && key === 's') {
             event.preventDefault();
             handleSave();
         }
@@ -30,6 +57,8 @@
         await commandRegistry.execute('project:close');
     }
 </script>
+
+<CommandPalette/>
 
 <svelte:window onkeydown={handleKeydown} />
 

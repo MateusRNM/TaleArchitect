@@ -1,7 +1,8 @@
 import { projectStore } from '$lib/stores/project.svelte';
-import { commandRegistry } from '$lib/services/commands';
+import { commandRegistry, type PaletteItem } from '$lib/services/commands';
 import { ask } from '@tauri-apps/plugin-dialog';
 import type { Time } from '$lib/models/project';
+import { Calendar, User } from 'lucide-svelte';
 
 class TimelineController {
 
@@ -76,6 +77,7 @@ class TimelineController {
     openCreate() {
         this.resetForm();
         this.view = 'form';
+        commandRegistry.execute('ui:navigate', { tabId: 'timeline' });
     }
 
     openEdit(id: string) {
@@ -143,11 +145,43 @@ export const timelineController = new TimelineController();
 
 export function registerTimelineCommands() {
     commandRegistry.register('timeline:create', () => timelineController.openCreate(), 'Abre o formulário de criação de evento');
-    commandRegistry.register('timeline:edit', (args: { id: string }) => timelineController.openEdit(args.id), 'Abre o formulário de edição de evento');
-    commandRegistry.register('timeline:save', () => timelineController.saveEvent(), 'Salva um evento (adiciona ou atualiza dependendo do tipo de formulário aberto)');
-    commandRegistry.register('timeline:delete', () => timelineController.deleteEvent(), 'Deleta o evento selecionado');
+
+    commandRegistry.register('timeline:edit', (args: { id: string }) => timelineController.openEdit(args.id), {
+        description: 'Abre o formulário de edição de evento',
+        argsProvider: () => {
+            return projectStore.current?.data.events.map(event => ({
+                label: event.name,
+                description: event.description,
+                icon: Calendar,
+                value: { id: event.id }
+            })) as PaletteItem[];
+        }
+    });
+
+    commandRegistry.register('timeline:save', () => timelineController.saveEvent(), {
+        description: 'Salva um evento (adiciona ou atualiza dependendo do tipo de formulário aberto)',
+        addToHistory: true
+    });
+
+    commandRegistry.register('timeline:delete', () => timelineController.deleteEvent(), {
+        description: 'Deleta o evento selecionado',
+        addToHistory: true
+    });
+
     commandRegistry.register('timeline:cancel', () => timelineController.cancelForm(), 'Cancela/fecha o formulário');
     commandRegistry.register('timeline:scroll:top', () => timelineController.scrollToTop(), 'Move a câmera para o topo (início) da timeline');
     commandRegistry.register('timeline:scroll:bottom', () => timelineController.scrollToBottom(), 'Move a câmera para o fim da timeline');
-    commandRegistry.register('timeline:char:toggle', (args: { id: string }) => timelineController.toggleCharacterInForm(args.id), 'Altera o status de um personagem no evento aberto no formulário (presente/ausente)');
+
+    commandRegistry.register('timeline:char:toggle', (args: { id: string }) => timelineController.toggleCharacterInForm(args.id), {
+        description: 'Altera o status de um personagem no evento aberto no formulário (presente/ausente)',
+        addToHistory: true,
+        argsProvider: () => {
+            return projectStore.current?.data.characters.map(character => ({
+                    label: character.name,
+                    description: character.description,
+                    icon: User,
+                    value: { id: character.id }
+            })) as PaletteItem[];
+        }
+    });
 }
