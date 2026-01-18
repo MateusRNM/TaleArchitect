@@ -134,6 +134,14 @@ export const projectStore = $state({
             createdAt: new Date().toISOString(),
             lastOpenedAt: new Date().toISOString(),
             autosave: false,
+            mapBackground: {
+                active: false,
+                path: '',
+                opacity: 0.7,
+                x: 0,
+                y: 0,
+                scale: 1
+            },
             calendar:{
                 months: JSON.parse(JSON.stringify(GREGORIAN_MONTHS))
             },

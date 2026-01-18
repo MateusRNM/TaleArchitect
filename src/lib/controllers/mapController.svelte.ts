@@ -1,10 +1,11 @@
 import { projectStore } from '$lib/stores/project.svelte';
 import { commandRegistry } from '$lib/services/commands';
-import { ask } from '@tauri-apps/plugin-dialog';
+import { ask, open } from '@tauri-apps/plugin-dialog';
 
 export const mapState = $state({
     view: { x: 0, y: 0, k: 1 },
     isPanning: false,
+    isCalibrating: false,
     draggingNodeId: null as string | null,
     selectedLocationId: null as string | null,
     selectedConnectionId: null as string | null,
@@ -95,7 +96,46 @@ function setViewCommand(args: { x?: number, y?:number, k?: number }) {
     if(args.k) mapState.view.k = args.k;
 }
 
+function toggleCalibrationCommand() {
+    mapState.isCalibrating = !mapState.isCalibrating;
+    
+    if (mapState.isCalibrating) {
+        mapState.selectedLocationId = null;
+        mapState.selectedConnectionId = null;
+    }
+}
+
+async function uploadBackgroundCommand() {
+    if(!projectStore.current) return;
+
+    const file = await open({
+        multiple: false,
+        directory: false,
+        filters: [{ name: 'Imagens', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+    });
+
+    if(file) {
+        projectStore.current.data.mapBackground.path = file;
+        projectStore.current.data.mapBackground.active = true;
+        
+        projectStore.current.data.mapBackground.x = 0;
+        projectStore.current.data.mapBackground.y = 0;
+        projectStore.current.data.mapBackground.scale = 1;
+        
+        projectStore.current.changesUnsaved = true;
+    }
+}
+
+function toggleBackgroundCommand() {
+    if (!projectStore.current) return;
+    projectStore.current.data.mapBackground.active = !projectStore.current.data.mapBackground.active;
+}
+
 export function registerMapCommands() {
+    commandRegistry.register('map:calibrate:toggle', toggleCalibrationCommand, 'Ativar/desativar modo de ajuste do fundo do mapa');
+    commandRegistry.register('map:background:upload', uploadBackgroundCommand, 'Carregar imagem de fundo');
+    commandRegistry.register('map:background:toggle', toggleBackgroundCommand, 'Mostrar/Esconder fundo');
+
     commandRegistry.register('map:location:create', createLocationCommand, {
         description: 'Cria um novo local',
         addToHistory: true

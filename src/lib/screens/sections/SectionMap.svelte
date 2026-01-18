@@ -1,16 +1,23 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { projectStore } from '$lib/stores/project.svelte';
-    import { Plus, Minus, Map as MapIcon, X, Trash2, AlignLeft, Info, Route, MoveHorizontalIcon } from 'lucide-svelte';
+    import { Plus, Minus, Map as MapIcon, X, Trash2, AlignLeft, Info, Route, MoveHorizontalIcon, EyeOff, Eye, Image, Move } from 'lucide-svelte';
     import { mapState, toWorld, setMapContainer } from '$lib/controllers/mapController.svelte';
     import { commandRegistry } from '$lib/services/commands';
     import type { Event } from '$lib/models/project';
     import { timelineController } from '$lib/controllers/timelineController.svelte';
-    const NODE_RADIUS = 30;
+    import { convertFileSrc } from '@tauri-apps/api/core';
+    const NODE_RADIUS = 20;
     let startPan = { x: 0, y: 0 };
     let startView = { x: 0, y: 0 };
     let dragStartCoords = { x: 0, y: 0 };
     let svgElement: SVGSVGElement;
+
+    let bgUrl = $derived(
+        projectStore.current?.data.mapBackground.path 
+        ? convertFileSrc(projectStore.current.data.mapBackground.path) 
+        : ''
+    );
 
     const cmd = commandRegistry.execute.bind(commandRegistry);
 
@@ -29,8 +36,19 @@
 
     function handleWheel(e: WheelEvent) {
         e.preventDefault();
+
+        if (mapState.isCalibrating && projectStore.current?.data.mapBackground.active) {
+            const bg = projectStore.current.data.mapBackground;
+            const intensity = 0.05;
+            const delta = e.deltaY > 0 ? -1 : 1;
+            
+            const newScale = Math.max(0.1, bg.scale + (delta * intensity));
+            bg.scale = newScale;
+            projectStore.current.changesUnsaved = true;
+            return; 
+        }
         
-        const minK = 0.1, maxK = 5, intensity = 0.1;
+        const minK = 0.2, maxK = 5, intensity = 0.1;
         const delta = e.deltaY > 0 ? -1 : 1;
         const newK = Math.min(Math.max(minK, mapState.view.k * (1 + delta * intensity)), maxK);
 
@@ -61,6 +79,19 @@
         if (mapState.isPanning) {
             const dx = e.clientX - startPan.x;
             const dy = e.clientY - startPan.y;
+
+            if (mapState.isCalibrating && projectStore.current?.data.mapBackground.active) {
+                const bg = projectStore.current.data.mapBackground;
+        
+                bg.x += dx / mapState.view.k; 
+                bg.y += dy / mapState.view.k;
+
+                startPan = { x: e.clientX, y: e.clientY };
+                
+                projectStore.current.changesUnsaved = true;
+                return;
+            }
+
             mapState.view.x = startView.x + dx;
             mapState.view.y = startView.y + dy;
             return;
@@ -140,11 +171,45 @@
 </script>
 
 <div class="relative w-full h-full bg-[#f1e0b9] overflow-hidden select-none">
+
+    {#if mapState.isCalibrating}
+        <div class="absolute inset-0 border-4 border-red-500 z-50 pointer-events-none flex items-center justify-center">
+            <div class="bg-red-500 text-white px-4 py-2 rounded-b font-bold shadow-lg">
+                MODO DE AJUSTE DE IMAGEM (Scroll para Escala, Arraste para Mover)
+            </div>
+        </div>
+    {/if}
     
     <div class="absolute top-4 right-4 flex flex-col gap-2 bg-surface/90 p-2 rounded-lg shadow-md border border-text-muted/20 z-10 backdrop-blur-sm">
+        
         <button onclick={() => cmd('map:camera:zoomIn')} class="p-2 hover:bg-background rounded transition-colors"><Plus size={20}/></button>
         <button onclick={() => cmd('map:camera:zoomOut')} class="p-2 hover:bg-background rounded transition-colors"><Minus size={20}/></button>
         <button onclick={() => cmd('map:camera:reset')} class="p-2 hover:bg-background rounded transition-colors"><MapIcon size={20}/></button>
+
+        <hr class="border-text-muted/20 my-1"/>
+    
+        <button onclick={() => cmd('map:background:upload')} class="p-2 hover:bg-background rounded transition-colors" title="Carregar Mapa">
+            <Image size={20}/>
+        </button>
+        
+        <button onclick={() => cmd('map:background:toggle')} class="p-2 hover:bg-background rounded transition-colors" title="Mostrar/Esconder">
+            {#if projectStore.current?.data.mapBackground.active}
+                <Eye size={20}/>
+            {:else}
+                <EyeOff size={20}/>
+            {/if}
+        </button>
+
+        {#if projectStore.current?.data.mapBackground.active}
+            <button 
+                onclick={() => cmd('map:calibrate:toggle')} 
+                class="p-2 rounded transition-colors {mapState.isCalibrating ? 'bg-red-500 text-white hover:bg-red-600' : 'hover:bg-background'}" 
+                title="Ajustar Imagem"
+            >
+                <Move size={20}/> 
+            </button>
+        {/if}
+
     </div>
 
     <div class="absolute bottom-4 left-4 p-3 bg-surface/80 backdrop-blur-sm rounded-lg border border-text-muted/10 text-[13px] text-text-muted font-mono space-y-1 pointer-events-none shadow-sm z-10">
@@ -256,6 +321,18 @@
 
         <g transform="translate({mapState.view.x}, {mapState.view.y}) scale({mapState.view.k})" style="transform-origin: 0 0;">
             
+            {#if projectStore.current?.data.mapBackground.active && bgUrl}
+                {@const bg = projectStore.current.data.mapBackground}
+                <image 
+                    href={bgUrl} 
+                    x={bg.x} 
+                    y={bg.y}
+                    transform="scale({bg.scale})"
+                    opacity={bg.opacity}
+                    class="pointer-events-none" 
+                />
+            {/if}
+
             <rect x={-mapState.view.x/mapState.view.k - 5000} y={-mapState.view.y/mapState.view.k - 5000} width="200000" height="200000" fill="url(#grid)" pointer-events="none" />
 
             {#if projectStore.current}

@@ -28,6 +28,15 @@ export interface Month {
     days: number;
 }
 
+export interface MapBackgroundConfig {
+    active: boolean;
+    path: string;
+    opacity: number;
+    x: number;  
+    y: number;     
+    scale: number; 
+}
+
 export interface Character {
     id: UUID;
     name: string;
@@ -67,6 +76,7 @@ export interface ProjectData {
     createdAt: string;
     lastOpenedAt: string;
     autosave: boolean;
+    mapBackground: MapBackgroundConfig;
     calendar: {
         months: Month[]
     };
