@@ -8,11 +8,13 @@
     import { registerWorkspaceCommands } from '$lib/controllers/workspaceController';
     import CommandPalette from '$lib/components/CommandPalette.svelte';
     import ToastContainer from '$lib/components/ToastContainer.svelte';
+    import { pluginLoader } from '$lib/services/pluginLoader';
     let isSaving = $state(false);
     let activeTabDefinition = $derived(uiManager.tabs.find(t => t.id === appState.activeTab));
 
-    onMount(() => {
+    onMount(async () => {
         registerWorkspaceCommands();
+        await pluginLoader.init();
     });
 
     $effect(() => {

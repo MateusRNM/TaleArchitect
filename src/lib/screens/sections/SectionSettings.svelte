@@ -2,6 +2,7 @@
     import { projectStore } from '$lib/stores/project.svelte';
     import { commandRegistry } from '$lib/services/commands';
     import { Trash2, Calendar, Type, AlertTriangle, RotateCcw, X, Plus } from 'lucide-svelte';
+  import PluginsConfig from '$lib/components/PluginsConfig.svelte';
     
     const cmd = commandRegistry.execute.bind(commandRegistry);
 
@@ -144,6 +145,8 @@
                 </div>
             </div>
         </section>
+
+        <PluginsConfig/>
 
         <section class="space-y-4 pt-4">
             <h3 class="text-lg font-bold text-red-600 flex items-center gap-2">

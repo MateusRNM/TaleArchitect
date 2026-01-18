@@ -1,6 +1,7 @@
-import { type ProjectData, type Character, type Event, type Time, GREGORIAN_MONTHS } from '$lib/models/project';
+import { type ProjectData, type Character, type Event, type Time, GREGORIAN_MONTHS, type Connection, type Location } from '$lib/models/project';
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { toastStore } from './toasts.svelte';
+import { pluginBridge } from '$lib/services/pluginBridge';
 
 export class ActiveProject {
 
@@ -21,6 +22,7 @@ export class ActiveProject {
             createdAt: new Date().toISOString()
         };
         this.data.characters.push(newChar);
+        pluginBridge.emitInternal('character:added', structuredClone(newChar));
         this.changesUnsaved = true;
     }
 
@@ -28,11 +30,13 @@ export class ActiveProject {
         const index = this.data.characters.findIndex((v) => v.id === id);
         if(index !== -1) {
             this.data.characters[index] = { ...this.data.characters[index], ...updates };
+            pluginBridge.emitInternal('character:updated', structuredClone($state.snapshot(this.data.characters[index])));
             this.changesUnsaved = true;
         }
     }
 
     removeCharacter(id: string) {
+        pluginBridge.emitInternal('character:removed', structuredClone($state.snapshot(this.data.characters.find(c => c.id === id))));
         this.data.characters = this.data.characters.filter(c => c.id !== id);
         this.data.events.forEach((event) => {
             const index = event.characters.findIndex((charId) => charId === id);
@@ -44,12 +48,14 @@ export class ActiveProject {
     }
 
     addLocation(name: string, description: string, x: number, y: number) {
-        this.data.locations.push({
+        const newLocation: Location = {
             id: crypto.randomUUID(),
             name,
             description,
             coordinates: { x, y }
-        });
+        };
+        this.data.locations.push(newLocation);
+        pluginBridge.emitInternal('location:added', structuredClone(newLocation));
         this.changesUnsaved = true;
     }
 
@@ -57,6 +63,7 @@ export class ActiveProject {
         this.data.connections = this.data.connections.filter(
             c => c.fromLocationId !== locationId && c.toLocationId !== locationId
         );
+        pluginBridge.emitInternal('location:removed', structuredClone($state.snapshot(this.data.locations.find(l => l.id === locationId))));
         this.data.locations = this.data.locations.filter(l => l.id !== locationId);
         this.changesUnsaved = true;
     }
@@ -64,18 +71,21 @@ export class ActiveProject {
     connectLocations(name: string, description: string, fromId: string, toId: string) {
         const idx = this.data.connections.findIndex((v) => (v.fromLocationId === fromId && v.toLocationId === toId) || (v.fromLocationId === toId && v.toLocationId === fromId));
         if(idx === -1) {
-            this.data.connections.push({
+            const newConnection: Connection = {
                 id: crypto.randomUUID(),
                 name,
                 description,
                 fromLocationId: fromId,
                 toLocationId: toId
-            });
+            };
+            this.data.connections.push(newConnection);
+            pluginBridge.emitInternal('connection:added', structuredClone(newConnection));
             this.changesUnsaved = true;
         }
     }
 
     removeConnection(connectionId: string) {
+        pluginBridge.emitInternal('connection:removed', structuredClone($state.snapshot(this.data.connections.find(c => c.id === connectionId))));
         this.data.connections = this.data.connections.filter(c => c.id !== connectionId);
         this.changesUnsaved = true;
     }
@@ -91,6 +101,8 @@ export class ActiveProject {
         };
         
         this.data.events.push(newEvent);
+
+        pluginBridge.emitInternal('event:added', structuredClone(newEvent));
         
         this.changesUnsaved = true;
     }
@@ -99,11 +111,13 @@ export class ActiveProject {
         const index = this.data.events.findIndex((v) => v.id === id);
         if(index !== -1) {
             this.data.events[index] = { ...this.data.events[index], ...updates };
+            pluginBridge.emitInternal('event:updated', structuredClone($state.snapshot(this.data.events[index])));
             this.changesUnsaved = true;
         }
     }
  
     removeEvent(id: string) {
+        pluginBridge.emitInternal('event:removed', structuredClone($state.snapshot(this.data.events.find(v => v.id === id))));
         this.data.events = this.data.events.filter((v) => v.id !== id);
         this.changesUnsaved = true;
     }
@@ -157,6 +171,7 @@ export const projectStore = $state({
             await writeTextFile(filePath, dataToSave);
             this.current.changesUnsaved = false;
             if(!this.current.data.autosave) toastStore.add('Projeto salvo com sucesso', 'success', 2000);
+            pluginBridge.emitInternal('project:save');
         } catch (error) {
             throw error;
         }
