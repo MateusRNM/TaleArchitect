@@ -104,6 +104,8 @@
 		
 		--text-main: #2C241B;  
 		--text-muted: #8C7B65;  
+
+		cursor: default;
 	}
 
 	body {
@@ -113,6 +115,12 @@
 		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 		transition-duration: 300ms;
 		font-family: var(--font-main);
+
+		user-select: none;
+		-webkit-user-select: none;
+		touch-action: pan-x pan-y;
+		background-color: #EFEFEF; 
+		overflow: hidden; 
 	}
 
 	input:-webkit-autofill,
@@ -126,5 +134,11 @@
 	input[type='number']::-webkit-inner-spin-button,
 	input[type='number']::-webkit-outer-spin-button {
 		-webkit-appearance: none;
+	}
+
+	input, textarea, [contenteditable="true"], .selectable {
+		user-select: text;
+		-webkit-user-select: text;
+		cursor: text;
 	}
 }

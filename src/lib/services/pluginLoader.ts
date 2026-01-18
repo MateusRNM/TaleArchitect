@@ -32,7 +32,6 @@ export class PluginLoader {
             }
 
         } catch (error) {
-            console.error('Erro crítico ao inicializar plugins:', error);
             pluginBridge.api.ui.toast('Falha ao acessar pasta de plugins', 'error');
         }
     }
@@ -49,7 +48,6 @@ export class PluginLoader {
             this.executeScript(scriptContent, manifest);
 
         } catch (error) {
-            console.error(`Falha ao carregar plugin da pasta ${folderName}:`, error);
             pluginBridge.api.ui.toast(`Erro ao carregar plugin: ${folderName}`, 'error');
         }
     }
@@ -60,10 +58,8 @@ export class PluginLoader {
             runPlugin(pluginBridge.api);
             
             this.loadedPlugins.set(manifest.id, manifest);
-            console.log(`Plugin carregado: ${manifest.name} v${manifest.version}`);
             
         } catch (error) {
-            console.error(`Erro de execução no plugin ${manifest.name}:`, error);
             pluginBridge.api.ui.toast(`Crash no plugin ${manifest.name}`, 'error');
         }
     }
@@ -74,7 +70,7 @@ export class PluginLoader {
             const pluginsPath = await join(appDataPath, 'plugins');
             await openPath(pluginsPath);
         } catch (error) {
-            console.error('Erro ao abrir pasta:', error);
+            throw error;
         }
     }
 }

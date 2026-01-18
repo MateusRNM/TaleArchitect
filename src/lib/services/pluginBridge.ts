@@ -14,12 +14,10 @@ export class PluginBridge {
         version: '1.0.0',
         commands: {
             execute: async (id: string, args?: any) => {
-                console.log(`[Plugin] Executing: ${id}`, args);
                 await commandRegistry.execute(id, args);
             },
             
             register: (id: string, handler: (args: any) => void, options?: any) => {
-                console.log(`[Plugin] Registering: ${id}`);
                 commandRegistry.register(id, handler, options);
             }
         },
@@ -64,7 +62,7 @@ export class PluginBridge {
                 projectStore.current.data.characters.push(newChar);
                 projectStore.current.changesUnsaved = true;
 
-                this.emitInternal('character:created', newChar);
+                this.emitInternal('character:added', newChar);
                 
                 return id;
             },
@@ -87,7 +85,7 @@ export class PluginBridge {
                 projectStore.current.data.events.push(newEvent);
                 projectStore.current.changesUnsaved = true;
 
-                this.emitInternal('event:created', newEvent);
+                this.emitInternal('event:added', newEvent);
 
                 return id;
             }
@@ -124,7 +122,7 @@ export class PluginBridge {
                 try {
                     cb(data);
                 } catch (e) {
-                    console.error(`Erro no plugin listener [${event}]:`, e);
+                    throw e;
                 }
             });
         }

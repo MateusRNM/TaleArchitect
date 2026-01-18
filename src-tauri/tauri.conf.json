@@ -14,6 +14,9 @@
       {
         "title": "TaleArchitect",
         "maximized": true,
+        "resizable": true,
+        "decorations": true,
+        "transparent": false,
         "width": 800,
         "height": 600
       }
