@@ -1,5 +1,6 @@
 import { type ProjectData, type Character, type Event, type Time, GREGORIAN_MONTHS } from '$lib/models/project';
 import { writeTextFile, readTextFile, remove } from "@tauri-apps/plugin-fs";
+import { toastStore } from './toasts.svelte';
 
 export class ActiveProject {
 
@@ -155,6 +156,7 @@ export const projectStore = $state({
             const filePath = this.current.data.projectdir;
             await writeTextFile(filePath, dataToSave);
             this.current.changesUnsaved = false;
+            if(!this.current.data.autosave) toastStore.add('Projeto salvo com sucesso', 'success', 2000);
         } catch (error) {
             throw error;
         }

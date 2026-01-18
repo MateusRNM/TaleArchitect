@@ -1,4 +1,5 @@
 import { projectStore } from './project.svelte';
+import { toastStore } from './toasts.svelte';
 
 const MAX_HISTORY = 50; 
 
@@ -30,6 +31,7 @@ class HistoryStore {
 
         if (previousState) {
             projectStore.current.data = previousState;
+            toastStore.add('Ação desfeita', 'info', 2000);
             projectStore.current.changesUnsaved = true;
         }
     }
@@ -44,6 +46,7 @@ class HistoryStore {
 
         if (nextState) {
             projectStore.current.data = nextState;
+            toastStore.add('Ação refeita', 'info', 2000);
             projectStore.current.changesUnsaved = true;
         }
     }

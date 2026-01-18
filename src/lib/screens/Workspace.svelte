@@ -6,7 +6,8 @@
     import { uiManager } from '$lib/stores/ui.svelte';
     import { commandRegistry } from '$lib/services/commands';
     import { registerWorkspaceCommands } from '$lib/controllers/workspaceController';
-  import CommandPalette from '$lib/components/CommandPalette.svelte';
+    import CommandPalette from '$lib/components/CommandPalette.svelte';
+    import ToastContainer from '$lib/components/ToastContainer.svelte';
     let isSaving = $state(false);
     let activeTabDefinition = $derived(uiManager.tabs.find(t => t.id === appState.activeTab));
 
@@ -58,6 +59,7 @@
     }
 </script>
 
+<ToastContainer/>
 <CommandPalette/>
 
 <svelte:window onkeydown={handleKeydown} />
