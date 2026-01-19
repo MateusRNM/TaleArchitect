@@ -146,7 +146,7 @@
                                 {isEven ? 'text-left items-start' : 'text-right items-end'}
                             ">
                                 <span class="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
-                                    {event.date.day} / {getMonthName(event.date.month)} / {event.date.year} - {event.date.hour}:{event.date.minute}
+                                    {event.date.day} / {getMonthName(event.date.month)} / {event.date.year} - {formatTime(event.date.hour, event.date.minute)}
                                 </span>
                                 <h3 class="font-bold text-text-main font-serif leading-tight">{event.name}</h3>
                                 {#if event.description}

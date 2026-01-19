@@ -45,7 +45,7 @@ export class PluginBridge {
                 get: async (entityId: string) => {
                     const result = this.findEntity(entityId);
                     if (!result) return null;
-                    return structuredClone(result.entity.metadata?.[pluginId] || {});
+                    return result.entity.metadata?.[pluginId] || {};
                 },
                 set: async (entityId: string, data: any) => {
                     if (!projectStore.current) return;
