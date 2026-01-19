@@ -55,15 +55,30 @@ export class PluginLoader {
         }
     }
 
-    private executeScript(code: string, manifest: PluginManifest) {
+    private async executeScript(code: string, manifest: PluginManifest) {
         try {
-            const runPlugin = new Function('app', code);
-            runPlugin(pluginBridge.api);
-            
-            this.loadedPlugins.set(manifest.id, manifest);
+            const context = pluginBridge.createPluginContext(manifest.id);
+            const wrappedCode = `
+            ${code}
+            ;
+            if (typeof init === 'function') {
+                return init;
+            } else {
+                return undefined;
+            }
+            `;
+
+            const factory = new Function(wrappedCode);
+            const initFunction = factory();
+            if(initFunction) {
+                await initFunction(context);
+                this.loadedPlugins.set(manifest.id, manifest);
+            } else {
+                pluginBridge.api.ui.toast(`Plugin ${manifest.name} inválido: função init não encontrada.`, 'error', 5000);
+            }
             
         } catch (error) {
-            pluginBridge.api.ui.toast(`Crash no plugin ${manifest.name}`, 'error');
+            pluginBridge.api.ui.toast(`Crash no plugin ${manifest.name}`, 'error', 4000);
         }
     }
 

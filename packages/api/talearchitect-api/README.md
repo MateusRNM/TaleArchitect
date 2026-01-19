@@ -5,7 +5,7 @@
 
 Este pacote contém as definições de tipo TypeScript (`.d.ts`) para o desenvolvimento de plugins para o **TaleArchitect**.
 
-Ao instalar este pacote, seu editor de código (VS Code, etc.) fornecerá **Autocomplete (IntelliSense)**, documentação inline e verificação de tipos para a variável global `app`.
+Ao instalar este pacote, seu editor de código (VS Code, etc.) fornecerá **Autocomplete (IntelliSense)**, documentação inline e verificação de tipos para a variável `app`.
 
 > **Nota:** Este pacote contém apenas tipos. A lógica de execução é fornecida nativamente pelo aplicativo TaleArchitect.
 
@@ -47,7 +47,19 @@ Crie um arquivo jsconfig.json na raiz da pasta do seu plugin. Isso habilita o au
 ```
 
 ## 📚 Visão Geral da API
-O objeto global app expõe as seguintes funcionalidades:
+
+### Ponto de partida
+Seu script deve conter uma função `init(app)`, que atuará como uma função "main" do seu plugin.
+
+```bash
+function init(app) {
+  app.ui.toast("Hello, World!", "success");
+}
+```
+
+<hr>
+
+O objeto `app` passado em `init(app)` expõe as seguintes funcionalidades:
 
 ```app.commands```
 
@@ -95,6 +107,18 @@ Descubra o estado atual da interface (qual aba está ativa, nível de zoom, etc)
 
 ```bash
 if (app.context.getActiveTab() === 'map') { ... }
+```
+
+```app.metadata```
+
+Permite salvar e recuperar dados personalizados em entidades (locais, conexões, eventos ou personagens).
+```bash
+const id = await app.factory.createCharacter("Novo Herói");
+app.metadata.set(id, {
+  hp: 20,
+  ataque: 4,
+  velocidade: 10
+});
 ```
 
 https://github.com/MateusRNM/TaleArchitect - Repositório principal do aplicativo.

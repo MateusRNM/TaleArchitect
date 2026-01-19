@@ -7,6 +7,7 @@
     import type { Event } from '$lib/models/project';
     import { timelineController } from '$lib/controllers/timelineController.svelte';
     import { convertFileSrc } from '@tauri-apps/api/core';
+  import { pluginBridge } from '$lib/services/pluginBridge.svelte';
     const NODE_RADIUS = 20;
     let startPan = { x: 0, y: 0 };
     let startView = { x: 0, y: 0 };
@@ -226,14 +227,14 @@
                 <div class="flex justify-between items-start mb-4">
                     <div class="flex flex-col w-full mr-2">
                         <span class="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1">Editando Local</span>
-                        <input type="text" bind:value={loc.name} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; }} class="bg-transparent border-b border-dashed border-text-muted/50 text-xl font-serif font-bold text-text-main focus:border-primary outline-none w-full pb-1"/>
+                        <input type="text" bind:value={loc.name} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; pluginBridge.emitInternal('location:updated', loc); }} class="bg-transparent border-b border-dashed border-text-muted/50 text-xl font-serif font-bold text-text-main focus:border-primary outline-none w-full pb-1"/>
                     </div>
                     <button onclick={closeEdit} class="text-text-muted hover:text-primary cursor-pointer"><X size={18}/></button>
                 </div>
                 <div class="space-y-4">
                     <div class="space-y-1">
                         <label class="flex items-center gap-1 text-xs font-bold text-text-muted uppercase"><AlignLeft size={12}/> Descrição</label>
-                        <textarea bind:value={loc.description} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; }} rows="4" placeholder="Descrição..." class="w-full bg-background/50 border border-text-muted/20 rounded-lg p-3 text-sm text-text-main resize-none"></textarea>
+                        <textarea bind:value={loc.description} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; pluginBridge.emitInternal('location:updated', loc); }} rows="4" placeholder="Descrição..." class="w-full bg-background/50 border border-text-muted/20 rounded-lg p-3 text-sm text-text-main resize-none"></textarea>
                     </div>
                     <div class="flex items-center justify-between pt-3 border-t border-text-muted/10">
                         <div class="flex items-center gap-1 text-xs text-text-muted font-mono" title="Coordenadas"><Info size={12} /> {Math.round(loc.coordinates.x)}, {Math.round(loc.coordinates.y)}</div>
@@ -285,14 +286,14 @@
                     <div class="flex flex-col w-full mr-2">
                         <span class="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1">Editando Conexão</span>
                         <h3 class="text-md font-serif font-bold text-text-main flex items-center gap-2">{fromLoc?.name.substring(0, 10) || '?'} <span class="text-text-muted text-xs"><MoveHorizontalIcon/></span> {toLoc?.name.substring(0, 10) || '?'}</h3>
-                        <input type="text" bind:value={conn.name} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; }} class="bg-transparent border-b border-dashed border-text-muted/50 text-xl font-serif font-bold text-text-main focus:border-primary outline-none w-full pb-1"/>
+                        <input type="text" bind:value={conn.name} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; pluginBridge.emitInternal('connection:updated', conn); }} class="bg-transparent border-b border-dashed border-text-muted/50 text-xl font-serif font-bold text-text-main focus:border-primary outline-none w-full pb-1"/>
                     </div>
                     <button onclick={closeEdit} class="text-text-muted hover:text-primary cursor-pointer"><X size={18}/></button>
                 </div>
                 <div class="space-y-4">
                     <div class="space-y-1">
                         <label class="flex items-center gap-1 text-xs font-bold text-text-muted uppercase"><Route size={12}/> Tipo / Descrição</label>
-                        <input type="text" bind:value={conn.description} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; }} placeholder="Ex: Estrada de Terra, Rio..." class="w-full bg-background/50 border border-text-muted/20 rounded-lg p-3 text-sm text-text-main focus:ring-1 focus:ring-primary outline-none"/>
+                        <input type="text" bind:value={conn.description} oninput={() => { if(projectStore.current) projectStore.current.changesUnsaved = true; pluginBridge.emitInternal('connection:updated', conn); }} placeholder="Ex: Estrada de Terra, Rio..." class="w-full bg-background/50 border border-text-muted/20 rounded-lg p-3 text-sm text-text-main focus:ring-1 focus:ring-primary outline-none"/>
                     </div>
                     <div class="flex items-center justify-end pt-3 border-t border-text-muted/10">
                         <button onclick={() => cmd('map:selection:delete')} class="flex items-center gap-1 text-xs font-bold text-red-600 hover:bg-red-100 px-3 py-1.5 rounded cursor-pointer"><Trash2 size={14} /> Deletar Conexão</button>

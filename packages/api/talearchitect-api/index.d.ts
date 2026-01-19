@@ -24,7 +24,6 @@ export interface Character {
     image: string | null;
     description: string;
     createdAt: string;
-    [key: string]: any;
 }
 
 export interface Location {
@@ -32,7 +31,6 @@ export interface Location {
     name: string;
     description: string;
     coordinates: Coordinates;
-    [key: string]: any;
 }
 
 export interface Connection {
@@ -41,7 +39,6 @@ export interface Connection {
     description: string;
     fromLocationId: UUID;
     toLocationId: UUID;
-    [key: string]: any;
 }
 
 export interface Event {
@@ -51,7 +48,6 @@ export interface Event {
     locationId: UUID;
     date: Time;
     characters: UUID[];
-    [key: string]: any;
 }
 
 export interface MapView {
@@ -67,7 +63,7 @@ export interface MapStateSnapshot {
 }
 
 export interface TimelineStateSnapshot {
-    view: 'list' | 'form';
+    view: 'list' | 'swimlane' | 'form';
     selectedEventId: string | null;
     scrollY: number;
 }
@@ -81,7 +77,8 @@ export type ToastType = 'success' | 'error' | 'info';
 
 export interface AppAPI {
 
-    readonly version: string;
+    readonly apiVersion: string;
+    readonly pluginInfo: { id: string };
 
     commands: {
         execute(id: string, args?: any): Promise<void>;
@@ -95,6 +92,15 @@ export interface AppAPI {
         getEvents(): Promise<Event[]>;
         getCalendar(): Promise<{ months: Month[] }>;
         getCurrentDate(): Promise<Time | null>;
+        updateCharacter(id: string, changes: Partial<Character>): Promise<void>;
+        updateLocation(id: string, changes: Partial<Location>): Promise<void>;
+        updateEvent(id: string, changes: Partial<Event>): Promise<void>;
+        updateConnection(id: string, changes: Partial<Character>): Promise<void>;
+        updateCalendar(months: Month[]): Promise<void>;
+        removeCharacter(id: string): Promise<void>;
+        removeLocation(id: string): Promise<void>;
+        removeEvent(id: string): Promise<void>;
+        removeConnection(id: string): Promise<void>;
     };
 
     factory: {
@@ -116,6 +122,11 @@ export interface AppAPI {
     context: {
         getActiveTab(): string;
         getStates(): FullUIState;
+    };
+
+    metadata: {
+        get(entityId: string): Promise<any>,
+        set(entityId: string, data: any): Promise<void>
     };
 }
 

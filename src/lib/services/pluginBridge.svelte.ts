@@ -3,7 +3,7 @@ import { commandRegistry } from '$lib/services/commands';
 import { toastStore } from '$lib/stores/toasts.svelte';
 import { historyStore } from '$lib/stores/history.svelte';
 import { ask, message } from '@tauri-apps/plugin-dialog';
-import type { Character, Event, Location, Time } from '$lib/models/project';
+import type { Character, Event, Location, Month, Time } from '$lib/models/project';
 import { timelineController } from '$lib/controllers/timelineController.svelte';
 import { appState } from '$lib/stores/app.svelte';
 import { mapState } from '$lib/controllers/mapController.svelte';
@@ -13,8 +13,60 @@ type EventCallback = (data: any) => void;
 export class PluginBridge {
     private listeners: Map<string, EventCallback[]> = new Map();
 
+    private findEntity(id: string): { entity: any, type: 'character' | 'location' | 'event' | 'connection' } | null {
+        if (!projectStore.current) return null;
+        
+        const char = projectStore.current.data.characters.find(c => c.id === id);
+        if (char) return { entity: char, type: 'character' };
+
+        const loc = projectStore.current.data.locations.find(l => l.id === id);
+        if (loc) return { entity: loc, type: 'location' };
+
+        const evt = projectStore.current.data.events.find(e => e.id === id);
+        if (evt) return { entity: evt, type: 'event' };
+
+        const conn = projectStore.current.data.connections.find(e => e.id === id);
+        if(conn) return { entity: conn, type: 'connection' };
+
+        return null;
+    }
+
+    public createPluginContext(pluginId: string) {
+        return {
+            apiVersion: '1.1.0',
+            pluginInfo: { id: pluginId },
+            ui: this.api.ui,
+            commands: this.api.commands,
+            context: this.api.context,
+            data: this.api.data,
+            factory: this.api.factory,
+            events: this.api.events,
+            metadata: {
+                get: async (entityId: string) => {
+                    const result = this.findEntity(entityId);
+                    if (!result) return null;
+                    return structuredClone(result.entity.metadata?.[pluginId] || {});
+                },
+                set: async (entityId: string, data: any) => {
+                    if (!projectStore.current) return;
+
+                    const result = this.findEntity(entityId);
+                    if (!result) throw new Error(`Entidade ${entityId} não encontrada.`);
+
+                    historyStore.capture(); 
+
+                    if (!result.entity.metadata) result.entity.metadata = {};
+
+                    result.entity.metadata[pluginId] = data;
+                    
+                    projectStore.current.changesUnsaved = true;
+                }
+            },
+        };
+    }
+
     public api = {
-        version: '1.0.0',
+        apiVersion: '1.1.0',
         commands: {
             execute: async (id: string, args?: any) => {
                 await commandRegistry.execute(id, args);
@@ -54,7 +106,65 @@ export class PluginBridge {
             getCurrentDate: async () => {
                 if (!projectStore.current) return null;
                 return structuredClone($state.snapshot(timelineController.currentDate));
-            }
+            },
+
+            updateCharacter: async (id: string, changes: Partial<Character>): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.updateCharacter(id, changes);
+                }
+            },
+
+            updateLocation: async (id: string, changes: Partial<Location>): Promise<void> => {
+                if(projectStore.current) {
+                    const index = projectStore.current.data.locations.findIndex(v => v.id === id);
+                    projectStore.current.data.locations[index] = { ...changes, ...projectStore.current.data.locations[index] };
+                    this.emitInternal('location:updated', projectStore.current.data.locations[index]);
+                }
+            },
+
+            updateEvent: async (id: string, changes: Partial<Event>): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.updateEvent(id, changes);
+                }
+            },
+
+            updateConnection: async (id: string, changes: Partial<Character>): Promise<void> => {
+                if(projectStore.current) {
+                    const index = projectStore.current.data.connections.findIndex(v => v.id === id);
+                    projectStore.current.data.connections[index] = { ...changes, ...projectStore.current.data.connections[index] };
+                    this.emitInternal('connection:updated', projectStore.current.data.connections[index]);
+                }
+            },
+
+            updateCalendar: async (months: Month[]): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.data.calendar.months = months;
+                }
+            },
+
+            removeCharacter: async (id: string): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.removeCharacter(id);
+                }   
+            },
+
+            removeLocation: async (id: string): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.removeLocation(id);
+                }   
+            },
+
+            removeEvent: async (id: string): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.removeEvent(id);
+                }   
+            },
+
+            removeConnection: async (id: string): Promise<void> => {
+                if(projectStore.current) {
+                    projectStore.current.removeConnection(id);
+                }   
+            },
         },
 
         factory: {

@@ -1,12 +1,13 @@
 import { projectStore } from '$lib/stores/project.svelte';
 import { commandRegistry, type PaletteItem } from '$lib/services/commands';
 import { ask } from '@tauri-apps/plugin-dialog';
-import type { Time } from '$lib/models/project';
+import type { Time, Event } from '$lib/models/project';
 import { Calendar, User } from 'lucide-svelte';
 
 class TimelineController {
 
-    view = $state<'list' | 'form'>('list');
+    view = $state<'list' | 'swimlane' | 'form'>('list');
+    lastViewMode = $state<'list' | 'swimlane'>('list');
     selectedEventId = $state<string | null>(null);
     scrollY = $state(50);
     formData = $state({
@@ -22,6 +23,25 @@ class TimelineController {
         return [...projectStore.current.data.events].sort((a, b) => {
             return this.getDateValue(a.date) - this.getDateValue(b.date);
         });
+    });
+
+    public groupedByLocation = $derived.by(() => {
+        if (!projectStore.current) return new Map<string, Event[]>();
+
+        const groups = new Map<string, Event[]>();
+        const events = this.sortedEvents;
+
+        projectStore.current.data.locations.forEach(loc => {
+            groups.set(loc.id, []);
+        });
+
+        for (const event of events) {
+            if (event.locationId && groups.has(event.locationId)) {
+                groups.get(event.locationId)?.push(event);
+            }
+        }
+
+        return groups;
     });
 
     currentDate = $derived.by(() => {
@@ -62,6 +82,18 @@ class TimelineController {
         }
     }
 
+    toggleViewMode() {
+        if (this.view === 'form') return;
+        
+        if (this.view === 'list') {
+            this.view = 'swimlane';
+            this.lastViewMode = 'swimlane';
+        } else {
+            this.view = 'list';
+            this.lastViewMode = 'list';
+        }
+    }
+
     resetForm() {
         this.selectedEventId = null;
         const lastDate = this.sortedEvents.length > 0 ? { ...this.currentDate } : { day: 1, month: 1, year: 1, hour: 12, minute: 0 };
@@ -75,6 +107,7 @@ class TimelineController {
     }
 
     openCreate() {
+        if (this.view !== 'form') this.lastViewMode = this.view;
         this.resetForm();
         this.view = 'form';
         commandRegistry.execute('ui:navigate', { tabId: 'timeline' });
@@ -83,6 +116,8 @@ class TimelineController {
     openEdit(id: string) {
         const event = projectStore.current?.data.events.find(e => e.id === id);
         if (!event) return;
+
+        if (this.view !== 'form') this.lastViewMode = this.view;
 
         this.selectedEventId = event.id;
         this.formData = {
@@ -113,7 +148,7 @@ class TimelineController {
             projectStore.current.addEvent(newEventData.name, newEventData.description, newEventData.locationId, newEventData.date, newEventData.characters);
         }
         
-        this.view = 'list';
+        this.view = this.lastViewMode;
         this.resetForm();
     }
 
@@ -123,13 +158,13 @@ class TimelineController {
         const confirmed = await ask('Deseja excluir este evento?', { title: 'Excluir Evento', kind: 'warning' });
         if (confirmed) {
             projectStore.current.removeEvent(this.selectedEventId);
-            this.view = 'list';
+            this.view = this.lastViewMode;
             this.resetForm();
         }
     }
 
     cancelForm() {
-        this.view = 'list';
+        this.view = this.lastViewMode;
         this.resetForm();
     }
 
@@ -144,6 +179,7 @@ class TimelineController {
 export const timelineController = new TimelineController();
 
 export function registerTimelineCommands() {
+    commandRegistry.register('timeline:view:toggle', () => timelineController.toggleViewMode(), 'Alternar entre Lista e Raias (Swimlanes)');
     commandRegistry.register('timeline:create', () => timelineController.openCreate(), 'Abre o formulário de criação de evento');
 
     commandRegistry.register('timeline:edit', (args: { id: string }) => timelineController.openEdit(args.id), {

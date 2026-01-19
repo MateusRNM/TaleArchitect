@@ -15,6 +15,10 @@ export const GREGORIAN_MONTHS: Month[] = [
     { name: 'Dezembro', days: 31 }
 ];
 
+export interface Metadata {
+    [pluginId: string]: any; 
+}
+
 export interface Time {
     day: number;
     month: number;
@@ -43,6 +47,7 @@ export interface Character {
     image: string | null;
     description: string;
     createdAt: string;
+    metadata?: Metadata;
 }
 
 export interface Location {
@@ -50,6 +55,7 @@ export interface Location {
     name: string;
     description: string;
     coordinates: { x: number, y: number };
+    metadata?: Metadata;
 }
 
 export interface Connection {
@@ -58,6 +64,7 @@ export interface Connection {
     description: string;
     fromLocationId: UUID;
     toLocationId: UUID;
+    metadata?: Metadata;
 }
 
 export interface Event {
@@ -67,6 +74,7 @@ export interface Event {
     locationId: UUID;
     date: Time;
     characters: UUID[];
+    metadata?: Metadata;
 }
 
 export interface ProjectData {

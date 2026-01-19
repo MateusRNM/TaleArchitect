@@ -2,7 +2,7 @@
 
 Bem-vindo à documentação oficial de desenvolvimento de plugins para o **TaleArchitect**.
 
-O sistema de plugins expõe um objeto global `app` que permite ler o estado do projeto, criar entidades (personagens, locais, eventos), interagir com a interface do usuário e registrar novos comandos.
+O sistema de plugins expõe um objeto `app` através dos parâmetros da função `init()` que o seu plugin deve ter, que permite ler o estado do projeto, criar entidades (personagens, locais, eventos), interagir com a interface do usuário e registrar novos comandos.
 
 ## 🚀 Configuração do Ambiente
 
@@ -34,19 +34,28 @@ Ou adicione essa referência no topo do seu arquivo main.js:
 /// <reference types="talearchitect-api" />
 ```
 
-## 📚 Referência da API Global (app)
+## Ponto de partida
+Seu script deve conter uma função `init(app)`, que atuará como uma função "main" do seu plugin.
+
+```bash
+function init(app) {
+  app.ui.toast("Hello, World!", "success");
+}
+```
+
+## 📚 Referência da API (app)
 
 ### 1. ```app.commands```
 Gerencia a execução e registro de ações na Paleta de Comandos ```(Ctrl+K)```.
 
-```execute(id: string, args?: any): Promise<void>``` Executa um comando interno do TaleArchitect.
+- ```execute(id: string, args?: any): Promise<void>``` Executa um comando interno do TaleArchitect.
 
 ```bash
 // Exemplo: Navegar para a aba de Mapa
 await app.commands.execute('ui:navigate', { tabId: 'map' });
 ```
 
-```register(id: string, handler: Function, options?: any): void``` Registra um novo comando criado pelo seu plugin.
+- ```register(id: string, handler: Function, options?: any): void``` Registra um novo comando criado pelo seu plugin.
 
 ```bash
 app.commands.register('meu-plugin:ola', () => {
@@ -57,17 +66,35 @@ app.commands.register('meu-plugin:ola', () => {
 ### 2. ```app.data```
 Fornece acesso de leitura aos dados do projeto. Nota: Retorna cópias (snapshots).
 
-```getCharacters(): Promise<Character[]>```
+- ```getCharacters(): Promise<Character[]>```
 
-```getLocations(): Promise<Location[]>```
+- ```getLocations(): Promise<Location[]>```
 
-```getConnections(): Promise<Connection[]>```
+- ```getConnections(): Promise<Connection[]>```
 
-```getEvents(): Promise<Event[]>```
+- ```getEvents(): Promise<Event[]>```
 
-```getCalendar(): Promise<{ months: Month[] }>```
+- ```getCalendar(): Promise<{ months: Month[] }>```
 
-```getCurrentDate(): Promise<Time | null>```
+- ```getCurrentDate(): Promise<Time | null>```
+
+- ```updateCharacter(id: string, changes: Partial<Character>): Promise<void>;```
+        
+- ```updateLocation(id: string, changes: Partial<Location>): Promise<void>;```
+
+- ```updateEvent(id: string, changes: Partial<Event>): Promise<void>;```
+
+- ```updateConnection(id: string, changes: Partial<Character>): Promise<void>;```
+
+- ```updateCalendar(months: Month[]): Promise<void>;```
+
+- ```removeCharacter(id: string): Promise<void>;```
+
+- ```removeLocation(id: string): Promise<void>;```
+
+- ```removeEvent(id: string): Promise<void>;```
+
+- ```removeConnection(id: string): Promise<void>;```
 
 ```bash
 const chars = await app.data.getCharacters();
@@ -117,7 +144,24 @@ if (estado.map.view.k > 2) {
 }
 ```
 
-### 6. ```app.events``` (Hooks)
+### 6. ```app.metadata```
+
+Permite salvar e recuperar dados personalizados em entidades (locais, conexões, eventos ou personagens).
+
+- ```get(entityId: string): Promise<any>```
+
+- ```set(entityId: string, data: any): Promise<void>```
+
+```bash
+const id = await app.factory.createCharacter("Novo Herói");
+app.metadata.set(id, {
+  hp: 20,
+  ataque: 4,
+  velocidade: 10
+});
+```
+
+### 7. ```app.events``` (Hooks)
 Permite executar código quando algo acontece no sistema.
 
 - ```on(event: string, callback: Function)```
@@ -140,8 +184,10 @@ Esses são os eventos que você pode escutar através de `app.events.on()`:
 | | `event:removed` | Um evento foi removido. | Objeto `Event` |
 | **Conexões** | `connection:added` | Uma nova conexão foi criada no mapa. | Objeto `Connection` |
 | | `connection:removed` | Uma conexão foi removida. | Objeto `Connection` |
+| | `connection:updated` | Uma conexão foi alterada. | Objeto `Connection` |
 | **Locais** | `location:added` | Um novo local foi criado no mapa. | Objeto `Location` |
 | | `location:removed` | Um local foi removido. | Objeto `Location` |
+| | `location:updated` | Um local foi alterado. | Objeto `Location` |
 | **Personagens** | `character:added` | Um novo personagem foi criado. | Objeto `Character` |
 | | `character:updated` | Um personagem existente foi alterado. | Objeto `Character` |
 | | `character:removed` | Um personagem foi removido. | Objeto `Character` |

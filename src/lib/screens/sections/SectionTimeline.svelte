@@ -2,7 +2,7 @@
     import { projectStore } from '$lib/stores/project.svelte';
     import { commandRegistry } from '$lib/services/commands';
     import { timelineController } from '$lib/controllers/timelineController.svelte';
-    import { Plus, ArrowUp, ArrowDown, MapPin, Calendar, ArrowLeft, Save, Trash2, Clock, Users, Check, User } from 'lucide-svelte';
+    import { Plus, ArrowUp, ArrowDown, MapPin, Calendar, ArrowLeft, Save, Trash2, Clock, Users, Check, User, Columns3, List, MoveHorizontal } from 'lucide-svelte';
     import { convertFileSrc } from '@tauri-apps/api/core';
 
     const cmd = commandRegistry.execute.bind(commandRegistry);
@@ -22,6 +22,10 @@
 
     function getCharacter(id: string) {
         return projectStore.current?.data.characters.find(c => c.id === id);
+    }
+
+    function getLocationName(id: string) {
+        return projectStore.current?.data.locations.find(l => l.id === id)?.name || 'Desconhecido / Sem Local';
     }
 
     let maxDaysInSelectedMonth = $derived.by(() => {
@@ -81,7 +85,11 @@
             </div>
         </div>
 
-        <div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
+        <div class="absolute top-4 right-4 z-10 flex flex-col gap-2 items-end">
+            <button onclick={() => cmd('timeline:view:toggle')} class="bg-surface text-text-muted p-3 rounded-full shadow-lg hover:text-primary transition-colors cursor-pointer border border-text-muted/10 mb-2" title="Alternar Visualização">
+                <Columns3 size={20} />
+            </button>
+
             <button onclick={() => cmd('timeline:create')} class="bg-primary text-background p-3 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer shadow-primary/30" title="Novo Evento">
                 <Plus size={24} />
             </button>
@@ -181,6 +189,96 @@
             </g>
         </svg>
 
+    {:else if timelineController.view === 'swimlane'}
+        
+        <div class="absolute top-4 right-4 z-10 flex gap-2">
+            <button onclick={() => cmd('timeline:view:toggle')} class="bg-surface text-text-muted p-3 rounded-full shadow-lg hover:text-primary transition-colors cursor-pointer border border-text-muted/10" title="Voltar para Lista">
+                <List size={20} />
+            </button>
+            <button onclick={() => cmd('timeline:create')} class="bg-primary text-background p-3 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer shadow-primary/30" title="Novo Evento">
+                <Plus size={24} />
+            </button>
+        </div>
+
+        <div class="w-full h-full overflow-y-auto overflow-x-hidden p-6 space-y-6 scrollbar-hide">
+            {#each [...timelineController.groupedByLocation] as [locId, events]}
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-2 sticky left-0">
+                        <MapPin size={16} class="text-primary"/>
+                        <h3 class="font-serif font-bold text-lg text-text-main">{getLocationName(locId)}</h3>
+                        <span class="text-xs text-text-muted bg-surface/50 px-2 py-0.5 rounded-full">{events.length}</span>
+                    </div>
+
+                    <div class="w-full overflow-x-auto pb-4 scrollbar-hide">
+                         <div class="flex gap-4 min-w-max px-1">
+                            {#if events.length === 0}
+                                <div class="h-32 w-64 border border-dashed border-text-muted/20 rounded-xl flex items-center justify-center text-text-muted text-xs italic">
+                                    Nenhum evento neste local
+                                </div>
+                            {:else}
+                                {#each events as event}
+                                    <button 
+                                        onclick={() => cmd('timeline:edit', { id: event.id })}
+                                        class="flex flex-col w-64 p-4 rounded-xl border border-text-muted/10 bg-surface/60 hover:bg-surface hover:shadow-lg hover:-translate-y-1 transition-all text-left group cursor-pointer"
+                                    >
+                                        <div class="flex items-center justify-between mb-2 w-full">
+                                            <span class="text-[10px] font-bold text-primary uppercase tracking-wider">
+                                                {event.date.day}/{event.date.month}/{event.date.year}
+                                            </span>
+                                            {#if event.date.hour}
+                                                <span class="text-[10px] text-text-muted font-mono bg-background/50 px-1 rounded">
+                                                    {formatTime(event.date.hour, event.date.minute)}
+                                                </span>
+                                            {/if}
+                                        </div>
+                                        
+                                        <h4 class="font-bold text-text-main font-serif leading-tight mb-2 line-clamp-2">{event.name}</h4>
+                                        
+                                        {#if event.description}
+                                            <p class="text-xs text-text-muted line-clamp-2 opacity-80 mb-3">{event.description}</p>
+                                        {/if}
+
+                                        {#if event.characters && event.characters.length > 0}
+                                            <div class="mt-auto flex -space-x-2 pt-2">
+                                                {#each event.characters.slice(0, 4) as charId}
+                                                    {@const char = getCharacter(charId)}
+                                                    {#if char}
+                                                        <div class="w-6 h-6 rounded-full border border-surface bg-background flex items-center justify-center overflow-hidden" title={char.name}>
+                                                            {#if char.image}
+                                                                <img src={convertFileSrc(char.image)} alt="" class="w-full h-full object-cover"/>
+                                                            {:else}
+                                                                <span class="text-[8px] font-bold text-text-muted">{char.name.substring(0,1)}</span>
+                                                            {/if}
+                                                        </div>
+                                                    {/if}
+                                                {/each}
+                                            </div>
+                                        {/if}
+                                    </button>
+                                {/each}
+                            {/if}
+                            
+                            <div class="flex items-center justify-center w-12 h-32 opacity-0 hover:opacity-100 transition-opacity">
+                                <button onclick={() => {
+                                    timelineController.formData.locationId = locId;
+                                    cmd('timeline:create');
+                                }} class="w-8 h-8 rounded-full bg-primary/20 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors cursor-pointer">
+                                    <Plus size={16}/>
+                                </button>
+                            </div>
+                         </div>
+                     </div>
+                </div>
+                <div class="w-full h-px bg-text-muted/10"></div> {/each}
+
+            {#if [...timelineController.groupedByLocation].length === 0}
+                 <div class="flex flex-col items-center justify-center h-full text-text-muted opacity-50">
+                    <MoveHorizontal size={48} class="mb-4"/>
+                    <p>Adicione locais ao seu mapa para ver as raias aqui.</p>
+                 </div>
+            {/if}
+        </div>
+
     {:else}
         <div class="max-w-2xl mx-auto w-full h-full flex flex-col p-8 duration-300 overflow-y-auto scrollbar-hide">
             
@@ -200,46 +298,46 @@
                         <Calendar size={16} /> Data
                     </h3>
 
-                    <div class="grid grid-cols-5 gap-4"> <div class="flex flex-col gap-1">
-                        <label class="text-xs font-bold text-text-muted">Dia</label>
-                        <input type="number" min="1" max={maxDaysInSelectedMonth} bind:value={timelineController.formData.date.day} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
-                    </div>
-                    
-                    <div class="flex flex-col gap-1 col-span-2">
-                        <label class="text-xs font-bold text-text-muted">Mês</label>
-                        <select bind:value={timelineController.formData.date.month} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none">
-                            {#if projectStore.current}
-                                {#each projectStore.current.data.calendar.months as m, i}
-                                    <option value={i + 1}>{m.name}</option>
-                                {/each}
-                            {/if}
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-bold text-text-muted">Ano</label>
-                        <input type="number" min="1" bind:value={timelineController.formData.date.year} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
-                    </div>
-
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-bold text-text-muted">Hora</label>
-                        <div class="flex items-center gap-1">
-                            <input 
-                                type="number" min="0" max="23" placeholder="00"
-                                bind:value={timelineController.formData.date.hour} 
-                                class="w-full bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none text-center" 
-                            />
-                            <span class="text-text-muted font-bold">:</span>
-                            <input 
-                                type="number" min="0" max="59" placeholder="00"
-                                bind:value={timelineController.formData.date.minute} 
-                                class="w-full bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none text-center" 
-                            />
+                    <div class="grid grid-cols-5 gap-4"> 
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-text-muted">Dia</label>
+                            <input type="number" min="1" max={maxDaysInSelectedMonth} bind:value={timelineController.formData.date.day} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
                         </div>
+                        
+                        <div class="flex flex-col gap-1 col-span-2">
+                            <label class="text-xs font-bold text-text-muted">Mês</label>
+                            <select bind:value={timelineController.formData.date.month} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none">
+                                {#if projectStore.current}
+                                    {#each projectStore.current.data.calendar.months as m, i}
+                                        <option value={i + 1}>{m.name}</option>
+                                    {/each}
+                                {/if}
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-text-muted">Ano</label>
+                            <input type="number" min="1" bind:value={timelineController.formData.date.year} class="bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs font-bold text-text-muted">Hora</label>
+                            <div class="flex items-center gap-1">
+                                <input 
+                                    type="number" min="0" max="23" placeholder="00"
+                                    bind:value={timelineController.formData.date.hour} 
+                                    class="w-full bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none text-center" 
+                                />
+                                <span class="text-text-muted font-bold">:</span>
+                                <input 
+                                    type="number" min="0" max="59" placeholder="00"
+                                    bind:value={timelineController.formData.date.minute} 
+                                    class="w-full bg-background border border-text-muted/30 rounded p-2 focus:ring-2 focus:ring-primary outline-none text-center" 
+                                />
+                            </div>
+                        </div>
+
                     </div>
-
-                </div>
-
                 </div>
 
                 <div class="flex flex-col gap-2">
