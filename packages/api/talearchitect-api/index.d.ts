@@ -130,8 +130,4 @@ export interface AppAPI {
     };
 }
 
-declare global {
-    const app: AppAPI;
-}
-
 export {};
