@@ -7,18 +7,18 @@
     import type { Event } from '$lib/models/project';
     import { timelineController } from '$lib/controllers/timelineController.svelte';
     import { convertFileSrc } from '@tauri-apps/api/core';
-  import { pluginBridge } from '$lib/services/pluginBridge.svelte';
+    import { pluginBridge } from '$lib/services/pluginBridge.svelte';
+    import { join, dirname } from '@tauri-apps/api/path';
     const NODE_RADIUS = 20;
     let startPan = { x: 0, y: 0 };
     let startView = { x: 0, y: 0 };
     let dragStartCoords = { x: 0, y: 0 };
     let svgElement: SVGSVGElement;
 
-    let bgUrl = $derived(
-        projectStore.current?.data.mapBackground.path 
-        ? convertFileSrc(projectStore.current.data.mapBackground.path) 
-        : ''
-    );
+    let bgUrl = $derived.by(async () => {
+        const image = await getImageUrl(projectStore.current?.data.mapBackground.path || null);
+        return image;
+    });
 
     const cmd = commandRegistry.execute.bind(commandRegistry);
 
@@ -168,6 +168,14 @@
     function closeEdit() {
         mapState.selectedLocationId = null;
         mapState.selectedConnectionId = null;
+    }
+
+    async function getImageUrl(relativePath: string | null) {
+        if (!relativePath) return '';
+
+        const projectDir = await dirname(projectStore.current?.data.projectdir as string);
+        const fullPath = await join(projectDir, relativePath);
+        return convertFileSrc(fullPath);
     }
 </script>
 
@@ -324,14 +332,16 @@
             
             {#if projectStore.current?.data.mapBackground.active && bgUrl}
                 {@const bg = projectStore.current.data.mapBackground}
-                <image 
-                    href={bgUrl} 
-                    x={bg.x} 
-                    y={bg.y}
-                    transform="scale({bg.scale})"
-                    opacity={bg.opacity}
-                    class="pointer-events-none" 
-                />
+                {#await bgUrl then src}
+                    <image 
+                        href={src}
+                        x={bg.x} 
+                        y={bg.y}
+                        transform="scale({bg.scale})"
+                        opacity={bg.opacity}
+                        class="pointer-events-none" 
+                    />
+                {/await}
             {/if}
 
             <rect x={-mapState.view.x/mapState.view.k - 5000} y={-mapState.view.y/mapState.view.k - 5000} width="200000" height="200000" fill="url(#grid)" pointer-events="none" />

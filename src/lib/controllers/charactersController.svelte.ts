@@ -4,6 +4,9 @@ import { open, ask } from '@tauri-apps/plugin-dialog';
 import type { Event } from '$lib/models/project';
 import { timelineController } from './timelineController.svelte';
 import { User } from 'lucide-svelte';
+import { dirname, extname, join } from '@tauri-apps/api/path';
+import { copyFile, mkdir, remove } from '@tauri-apps/plugin-fs';
+import { pluginBridge } from '$lib/services/pluginBridge.svelte';
 
 export const charState = $state({
     view: 'list' as 'list' | 'form',
@@ -69,6 +72,7 @@ async function deleteCharacterCommand(args: { id: string }) {
     });
 
     if (confirmed) {
+        deleteImageFromAssets();
         projectStore.current?.removeCharacter(args.id);
         if (charState.selectedId === args.id) {
             closeFormCommand();
@@ -83,7 +87,23 @@ async function pickImageCommand() {
     });
     
     if (file && typeof file === 'string') {
-        charState.formData.image = file;
+        try {
+            const projectDir = await dirname(projectStore.current?.data.projectdir as string);
+            const assetsDir = await join(projectDir, 'assets');
+
+            await mkdir(assetsDir, { recursive: true });
+
+            const ext = await extname(file);
+            const newFileName = `${charState.formData.name.replaceAll(' ', '-')}.${ext}`;
+            const destPath = await join(assetsDir, newFileName);
+
+            await copyFile(file, destPath);
+
+            charState.formData.image = `assets/${newFileName}`;
+
+        } catch (error) {
+            pluginBridge.api.ui.toast('Falha ao importar a imagem para o projeto', 'error');
+        }
     }
 }
 
@@ -94,6 +114,13 @@ function removeImageCommand() {
 function resetForm() {
     charState.selectedId = null;
     charState.formData = { name: '', description: '', image: null };
+}
+
+async function deleteImageFromAssets() {
+    if(charState.formData.image) {
+        const path = await join(projectStore.current?.data.projectdir as string, charState.formData.image);
+        await remove(path);
+    }
 }
 
 function getAllEvents(args: { charId: string }): Event[] {

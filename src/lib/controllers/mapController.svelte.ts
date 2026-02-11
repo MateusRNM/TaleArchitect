@@ -1,6 +1,9 @@
 import { projectStore } from '$lib/stores/project.svelte';
 import { commandRegistry } from '$lib/services/commands';
 import { ask, open } from '@tauri-apps/plugin-dialog';
+import { pluginBridge } from '$lib/services/pluginBridge.svelte';
+import { dirname, extname, join } from '@tauri-apps/api/path';
+import { copyFile, mkdir } from '@tauri-apps/plugin-fs';
 
 export const mapState = $state({
     view: { x: 0, y: 0, k: 1 },
@@ -115,14 +118,25 @@ async function uploadBackgroundCommand() {
     });
 
     if(file) {
-        projectStore.current.data.mapBackground.path = file;
-        projectStore.current.data.mapBackground.active = true;
-        
-        projectStore.current.data.mapBackground.x = 0;
-        projectStore.current.data.mapBackground.y = 0;
-        projectStore.current.data.mapBackground.scale = 1;
-        
-        projectStore.current.changesUnsaved = true;
+        try {
+            const projectDir = await dirname(projectStore.current?.data.projectdir as string);
+            const assetsDir = await join(projectDir, 'assets');
+            await mkdir(assetsDir, { recursive: true });
+            const ext = await extname(file);
+            const newFileName = `map-bg-image.${ext}`;
+            const destPath = await join(assetsDir, newFileName);
+            await copyFile(file, destPath);
+
+            projectStore.current.data.mapBackground.path = `assets/${newFileName}`;
+            projectStore.current.data.mapBackground.active = true;
+            projectStore.current.data.mapBackground.x = 0;
+            projectStore.current.data.mapBackground.y = 0;
+            projectStore.current.data.mapBackground.scale = 1;
+            projectStore.current.changesUnsaved = true;
+
+        } catch (error) {
+            pluginBridge.api.ui.toast('Falha ao importar a imagem para o projeto', 'error');
+        }
     }
 }
 

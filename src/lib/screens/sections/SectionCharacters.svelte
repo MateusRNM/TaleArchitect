@@ -6,6 +6,7 @@
     import { charState } from '$lib/controllers/charactersController.svelte';
     import type { Event } from '$lib/models/project';
     import { timelineController } from '$lib/controllers/timelineController.svelte';
+    import { join, dirname } from '@tauri-apps/api/path';
 
     let filteredCharacters = $derived.by(() => {
         if (!projectStore.current) return [];
@@ -24,6 +25,14 @@
         if(!charState.selectedId) return [];
         return timelineController.sortedEvents.filter((event) => event.characters.includes(charState.selectedId as string));
     });
+
+    async function getImageUrl(relativePath: string | null) {
+        if (!relativePath) return '';
+
+        const projectDir = await dirname(projectStore.current?.data.projectdir as string);
+        const fullPath = await join(projectDir, relativePath);
+        return convertFileSrc(fullPath);
+    }
 
     const cmd = commandRegistry.execute.bind(commandRegistry);
 </script>
@@ -74,11 +83,13 @@
                     >
                         <div class="aspect-3/4 w-full bg-surface/50 relative overflow-hidden">
                             {#if char.image}
-                                <img 
-                                    src={convertFileSrc(char.image)} 
-                                    alt={char.name} 
-                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 object-top"
-                                />
+                                {#await getImageUrl(char.image) then src}
+                                    <img 
+                                        src={src} 
+                                        alt={char.name} 
+                                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 object-top"
+                                    />
+                                {/await}
                             {:else}
                                 <div class="w-full h-full flex items-center justify-center text-text-muted/30">
                                     <User size={64} />
@@ -132,7 +143,9 @@
                 <div class="w-full md:w-1/3 flex flex-col gap-4">
                     <div class="aspect-3/4 rounded-xl border-2 border-dashed border-text-muted/30 bg-surface/50 overflow-hidden relative group">
                         {#if charState.formData.image}
-                            <img src={convertFileSrc(charState.formData.image)} alt="Preview" class="w-full h-full object-cover object-top" />
+                            {#await getImageUrl(charState.formData.image) then src}
+                                <img src={src} alt="Preview" class="w-full h-full object-cover object-top" />
+                            {/await}
                         {:else}
                             <div class="w-full h-full flex flex-col items-center justify-center text-text-muted/50">
                                 <ImageIcon size={48} />
