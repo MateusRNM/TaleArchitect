@@ -1,7 +1,7 @@
 [package]
 name = "talearchitect"
-version = "1.1.1"
-description = "Aplicativo para construção e estruturação de histórias para livros, RPGs, jogos e qualquer outro tipo de história."
+version = "1.2.0"
+description = "Aplicativo para construção e estruturação de histórias/worldbuilding para livros, RPGs, jogos e qualquer outro tipo de história."
 authors = ["Mateus Ribeiro Neves Martins"]
 edition = "2021"
 
