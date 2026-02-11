@@ -71,7 +71,7 @@ app.commands.register('meu:comando', () => { ... });
 
 ```app.data```
 
-Acesso de leitura aos dados do projeto (Personagens, Locais, Eventos, Calendário).
+Acesso aos dados do projeto (Personagens, Locais, Conexões, Eventos, Calendário).
 
 ```bash
 const chars = await app.data.getCharacters();

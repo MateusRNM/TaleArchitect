@@ -31,7 +31,7 @@
 - **🗺️ Mapa Mental Interativo:** Crie locais, arraste, solte e conecte-os visualmente. O sistema de nós permite entender a geografia e as relações do seu mundo num piscar de olhos.
 - **⏳ Timeline Dinâmica:** Visualize eventos cronologicamente com suporte a calendários personalizados (dias e meses customizáveis).
 - **👤 Gestão de Personagens:** Mantenha a lore e as descrições dos seus personagens.
-- **⚡ Paleta de Comandos:** Acesse comandos rapidamente com `Ctrl + K`.
+- **⚡ Paleta de Comandos:** Acesse comandos do aplicativo com `Ctrl + K`.
 - **🔌 Sistema de Plugins:** Estenda as funcionalidades do app usando JavaScript simples. Crie geradores, exportadores e automações.
 - **💾 100% Offline & Seguro:** Seus dados ficam no seu computador. Suporte nativo a Autosave, Undo (`Ctrl+Z`) e Redo (`Ctrl+Shift+Z`).
 
@@ -70,8 +70,8 @@ Para instalar um plugin:
 ## 🛠️ Desenvolvimento (Para Contribuidores)
 
 Este projeto utiliza as seguintes tecnologias:
-- **Core:** [Tauri v2](https://v2.tauri.app/) (Rust)
-- **Frontend:** [Svelte 5](https://svelte.dev/) (Runes) + TypeScript
+- **Back-end:** [Tauri v2](https://v2.tauri.app/)
+- **Front-end:** [Svelte 5](https://svelte.dev/) + TypeScript
 - **Estilização:** TailwindCSS
 - **Runtime:** Bun
 
@@ -110,4 +110,4 @@ O código segue uma arquitetura limpa e desacoplada:
 
 - ```src-tauri```: Backend em Rust (Gerenciamento de janelas e sistema de arquivos).
 
-**OBS: Esse projeto está na primeira versão, e eu sou só um estudante de programação. Qualquer ajuda ou feedback será bem-vinda!**
+**OBS: Esse projeto está nas primeiras versões, e eu sou só um estudante de programação. Qualquer ajuda ou feedback será bem-vinda!**

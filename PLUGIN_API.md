@@ -64,7 +64,7 @@ app.commands.register('meu-plugin:ola', () => {
 ```
 
 ### 2. ```app.data```
-Fornece acesso de leitura aos dados do projeto. Nota: Retorna cópias (snapshots).
+Fornece acesso de leitura, escrita e deleção aos dados do projeto. Nota: Retorna cópias (snapshots).
 
 - ```getCharacters(): Promise<Character[]>```
 

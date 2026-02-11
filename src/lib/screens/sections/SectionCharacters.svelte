@@ -77,7 +77,7 @@
                                 <img 
                                     src={convertFileSrc(char.image)} 
                                     alt={char.name} 
-                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 object-top"
                                 />
                             {:else}
                                 <div class="w-full h-full flex items-center justify-center text-text-muted/30">
@@ -132,7 +132,7 @@
                 <div class="w-full md:w-1/3 flex flex-col gap-4">
                     <div class="aspect-3/4 rounded-xl border-2 border-dashed border-text-muted/30 bg-surface/50 overflow-hidden relative group">
                         {#if charState.formData.image}
-                            <img src={convertFileSrc(charState.formData.image)} alt="Preview" class="w-full h-full object-cover" />
+                            <img src={convertFileSrc(charState.formData.image)} alt="Preview" class="w-full h-full object-cover object-top" />
                         {:else}
                             <div class="w-full h-full flex flex-col items-center justify-center text-text-muted/50">
                                 <ImageIcon size={48} />

@@ -160,7 +160,7 @@
                                             {#if char}
                                                 <div class="w-6 h-6 rounded-full overflow-hidden border border-background shadow-sm bg-text-muted/10" title={char.name}>
                                                     {#if char.image}
-                                                        <img src={convertFileSrc(char.image)} alt={char.name} class="w-full h-full object-cover" />
+                                                        <img src={convertFileSrc(char.image)} alt={char.name} class="w-full h-full object-cover object-top" />
                                                     {:else}
                                                         <div class="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-[8px] font-bold">
                                                             {char.name.substring(0,2).toUpperCase()}
@@ -245,7 +245,7 @@
                                                     {#if char}
                                                         <div class="w-6 h-6 rounded-full border border-surface bg-background flex items-center justify-center overflow-hidden" title={char.name}>
                                                             {#if char.image}
-                                                                <img src={convertFileSrc(char.image)} alt="" class="w-full h-full object-cover"/>
+                                                                <img src={convertFileSrc(char.image)} alt="" class="w-full h-full object-cover object-top"/>
                                                             {:else}
                                                                 <span class="text-[8px] font-bold text-text-muted">{char.name.substring(0,1)}</span>
                                                             {/if}
@@ -379,7 +379,7 @@
                                         >
                                             <div class="w-6 h-6 rounded-full overflow-hidden shrink-0 bg-text-muted/10">
                                                 {#if char.image}
-                                                    <img src={convertFileSrc(char.image)} alt="" class="w-full h-full object-cover" />
+                                                    <img src={convertFileSrc(char.image)} alt="" class="w-full h-full object-cover object-top" />
                                                 {:else}
                                                     <div class="flex items-center justify-center w-full h-full"><User size={12}/></div>
                                                 {/if}
